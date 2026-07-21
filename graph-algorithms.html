@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Graph Algorithms — Interview Cheat Sheet</title>
+</head>
+<body>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface-2: #eef1f5;
+    --ink: #141a21;
+    --muted: #5a6675;
+    --line: #dde3ea;
+    --line-strong: #c7d0da;
+    --accent: #0d9488;
+    --accent-ink: #0b6f66;
+    --accent-soft: rgba(13, 148, 136, 0.10);
+    --good: #2f9e44;
+    --warn: #c67617;
+    --bad: #dc2f37;
+    --code-bg: #0f1620;
+    --code-ink: #d6dfe9;
+    --k: #7cc4ff;    /* keyword  */
+    --t: #6ee7c7;    /* type     */
+    --s: #f0b47a;    /* string   */
+    --n: #d7a0ff;    /* number   */
+    --c: #6b7c8f;    /* comment  */
+    --shadow: 0 1px 2px rgba(20,26,33,.04), 0 8px 24px -12px rgba(20,26,33,.18);
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c1016;
+      --surface: #131a22;
+      --surface-2: #0f151d;
+      --ink: #e6ecf2;
+      --muted: #8a99a8;
+      --line: #232d38;
+      --line-strong: #2f3c49;
+      --accent: #2dd4bf;
+      --accent-ink: #5fe6d4;
+      --accent-soft: rgba(45, 212, 191, 0.12);
+      --good: #4ade80;
+      --warn: #fbbf24;
+      --bad: #f87171;
+      --code-bg: #0a0f16;
+      --code-ink: #cdd8e3;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f4f6f8; --surface: #ffffff; --surface-2: #eef1f5; --ink: #141a21;
+    --muted: #5a6675; --line: #dde3ea; --line-strong: #c7d0da;
+    --accent: #0d9488; --accent-ink: #0b6f66; --accent-soft: rgba(13,148,136,.10);
+    --good: #2f9e44; --warn: #c67617; --bad: #dc2f37;
+    --code-bg: #0f1620; --code-ink: #d6dfe9;
+    --shadow: 0 1px 2px rgba(20,26,33,.04), 0 8px 24px -12px rgba(20,26,33,.18);
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0c1016; --surface: #131a22; --surface-2: #0f151d; --ink: #e6ecf2;
+    --muted: #8a99a8; --line: #232d38; --line-strong: #2f3c49;
+    --accent: #2dd4bf; --accent-ink: #5fe6d4; --accent-soft: rgba(45,212,191,.12);
+    --good: #4ade80; --warn: #fbbf24; --bad: #f87171;
+    --code-bg: #0a0f16; --code-ink: #cdd8e3;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    margin: 0 0 10px;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    background:
+      radial-gradient(1px 1px at center, var(--line-strong) 1px, transparent 1px) 0 0 / 26px 26px,
+      var(--surface-2);
+  }
+  .hero .wrap {
+    display: grid;
+    grid-template-columns: 1.15fr .85fr;
+    gap: 40px;
+    align-items: center;
+    padding: 68px 24px 60px;
+  }
+  .hero h1 {
+    font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+    line-height: 1.04;
+    letter-spacing: -.02em;
+    margin: 0 0 16px;
+    text-wrap: balance;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p.lede {
+    font-size: 1.08rem;
+    color: var(--muted);
+    margin: 0 0 24px;
+    max-width: 46ch;
+  }
+  .hero .metaline {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .hero .metaline span {
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 4px 11px;
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .diagram { width: 100%; height: auto; display: block; }
+  .diagram .edge { stroke: var(--line-strong); stroke-width: 2; }
+  .diagram .edge.active { stroke: var(--accent); }
+  .diagram circle {
+    fill: var(--surface);
+    stroke: var(--line-strong);
+    stroke-width: 2.5;
+  }
+  .diagram .node { animation: pulse 4.8s ease-in-out infinite; }
+  .diagram .node text {
+    fill: var(--muted); font-family: var(--mono); font-size: 13px;
+    font-weight: 600; text-anchor: middle; dominant-baseline: central;
+  }
+  @keyframes pulse {
+    0%, 62%, 100% { fill: var(--surface); stroke: var(--line-strong); }
+    18%, 44%      { fill: var(--accent); stroke: var(--accent); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .diagram .node { animation: none; }
+  }
+
+  /* ---------- Sticky nav ---------- */
+  nav.toc {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.toc .wrap {
+    display: flex; gap: 4px; overflow-x: auto;
+    padding: 10px 24px; scrollbar-width: none;
+  }
+  nav.toc .wrap::-webkit-scrollbar { display: none; }
+  nav.toc a {
+    flex: 0 0 auto;
+    font-family: var(--mono); font-size: 12.5px;
+    text-decoration: none; color: var(--muted);
+    padding: 6px 12px; border-radius: 8px; white-space: nowrap;
+  }
+  nav.toc a:hover { color: var(--ink); background: var(--surface-2); }
+
+  /* ---------- Sections ---------- */
+  section { padding: 56px 0 8px; scroll-margin-top: 60px; }
+  .sec-head { margin-bottom: 26px; }
+  .sec-head h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    letter-spacing: -.015em; margin: 0 0 8px; text-wrap: balance;
+  }
+  .sec-head p { color: var(--muted); margin: 0; max-width: 68ch; }
+
+  .grid { display: grid; gap: 18px; }
+  .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 {
+    margin: 0 0 4px; font-size: 1.18rem; letter-spacing: -.01em;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .card h3 .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent); flex: 0 0 auto;
+  }
+  .card .sub { font-family: var(--mono); font-size: 12px; color: var(--muted); margin: 0 0 14px; }
+  .card p { margin: 0 0 12px; }
+  .card p:last-child { margin-bottom: 0; }
+
+  ul.tick { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 6px; }
+  ul.tick li { position: relative; padding-left: 22px; font-size: .95rem; }
+  ul.tick li::before {
+    content: ""; position: absolute; left: 4px; top: .62em;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent);
+  }
+  ul.tick.con li::before { background: var(--bad); }
+  ul.tick .lbl { font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted); }
+
+  /* complexity badges */
+  .cx {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 12.5px; font-weight: 600;
+    padding: 3px 9px; border-radius: 7px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface-2);
+  }
+  .cx b { font-weight: 500; color: var(--muted); font-size: 11px; }
+  .cx.good { color: var(--good); border-color: color-mix(in srgb, var(--good) 45%, var(--line)); }
+  .cx.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+  .cx.bad  { color: var(--bad);  border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); }
+  .cx-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+
+  /* code */
+  pre {
+    margin: 14px 0 0;
+    background: var(--code-bg);
+    border: 1px solid #1c2733;
+    border-radius: 10px;
+    padding: 16px 16px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12.9px;
+    line-height: 1.62;
+    color: var(--code-ink);
+    tab-size: 4;
+  }
+  pre code { font-family: inherit; white-space: pre; }
+  .tok-k { color: var(--k); }
+  .tok-t { color: var(--t); }
+  .tok-s { color: var(--s); }
+  .tok-n { color: var(--n); }
+  .tok-c { color: var(--c); font-style: italic; }
+
+  /* tables */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--surface); }
+  th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); background: var(--surface-2); position: sticky; top: 0;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td code, th code, p code, li code {
+    font-family: var(--mono); font-size: .86em;
+    background: var(--surface-2); padding: 1.5px 5px; border-radius: 5px;
+    border: 1px solid var(--line);
+  }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  td .cx { white-space: nowrap; }
+  .cue { font-weight: 600; }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 12px 16px; border-radius: 0 10px 10px 0;
+    margin: 14px 0 0; font-size: .94rem;
+  }
+  .callout .lbl { font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--accent-ink); font-weight: 700; }
+
+  footer {
+    margin-top: 64px; border-top: 1px solid var(--line);
+    padding: 28px 0 60px; color: var(--muted); font-size: .88rem;
+  }
+  footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  footer .mono { font-family: var(--mono); font-size: 12px; }
+
+  a.anchor { color: inherit; text-decoration: none; }
+
+  @media (max-width: 900px) {
+    .hero .wrap { grid-template-columns: 1fr; gap: 28px; padding: 48px 24px 44px; }
+    .hero .diagram-wrap { max-width: 380px; }
+    .grid.cols-3 { grid-template-columns: 1fr; }
+    .grid.cols-2 { grid-template-columns: 1fr; }
+  }
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Coding Interview · Reference</p>
+      <h1>Graph Algorithms,<br><span>at a glance.</span></h1>
+      <p class="lede">Representations, traversals, and shortest-path algorithms — with runtime complexity, tradeoffs, and idiomatic Kotlin you can write on a whiteboard.</p>
+      <div class="metaline">
+        <span>V = vertices</span>
+        <span>E = edges</span>
+        <span>Kotlin</span>
+      </div>
+    </div>
+    <div class="diagram-wrap">
+      <svg class="diagram" viewBox="0 0 360 300" role="img" aria-label="Animated node-link graph showing a breadth-first traversal wave">
+        <!-- edges -->
+        <g>
+          <line class="edge active" x1="180" y1="46" x2="86"  y2="120"/>
+          <line class="edge active" x1="180" y1="46" x2="274" y2="120"/>
+          <line class="edge" x1="86"  y1="120" x2="60"  y2="222"/>
+          <line class="edge" x1="86"  y1="120" x2="164" y2="222"/>
+          <line class="edge" x1="274" y1="120" x2="164" y2="222"/>
+          <line class="edge" x1="274" y1="120" x2="300" y2="222"/>
+          <line class="edge" x1="60"  y1="222" x2="164" y2="222"/>
+        </g>
+        <!-- nodes -->
+        <g class="node" style="animation-delay:0s"><circle cx="180" cy="46" r="22"/><text x="180" y="46">A</text></g>
+        <g class="node" style="animation-delay:.35s"><circle cx="86" cy="120" r="22"/><text x="86" y="120">B</text></g>
+        <g class="node" style="animation-delay:.35s"><circle cx="274" cy="120" r="22"/><text x="274" y="120">C</text></g>
+        <g class="node" style="animation-delay:.7s"><circle cx="60" cy="222" r="22"/><text x="60" y="222">D</text></g>
+        <g class="node" style="animation-delay:.7s"><circle cx="164" cy="222" r="22"/><text x="164" y="222">E</text></g>
+        <g class="node" style="animation-delay:.7s"><circle cx="300" cy="222" r="22"/><text x="300" y="222">F</text></g>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#represent">Representations</a>
+    <a href="#traversal">BFS &amp; DFS</a>
+    <a href="#compare">BFS vs DFS</a>
+    <a href="#dijkstra">Dijkstra</a>
+    <a href="#astar">A*</a>
+    <a href="#ops">Complexity Table</a>
+    <a href="#patterns">Problem Patterns</a>
+    <a href="#grid">Grid Problems</a>
+    <a href="#bonus">Bonus Algorithms</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- ============ REPRESENTATIONS ============ -->
+  <section id="represent">
+    <div class="sec-head">
+      <p class="eyebrow">01 — Memory</p>
+      <h2><a class="anchor" href="#represent">Three ways to represent a graph</a></h2>
+      <p>The representation you choose dictates the cost of every later operation. For <code>V</code> vertices and <code>E</code> edges, adjacency lists win for the sparse graphs (<code>E ≪ V²</code>) you'll see in almost every interview.</p>
+    </div>
+
+    <div class="grid cols-3">
+      <div class="card">
+        <h3><span class="dot"></span>Adjacency List</h3>
+        <p class="sub">The default. Array/map of neighbor lists.</p>
+        <div class="cx-row">
+          <span class="cx good">O(V+E) <b>space</b></span>
+        </div>
+        <ul class="tick">
+          <li>Iterate a node's neighbors in <code>O(deg)</code></li>
+          <li>Space-optimal for sparse graphs</li>
+          <li>Fast to build; the interview go-to</li>
+        </ul>
+        <ul class="tick con">
+          <li>Edge lookup <code>(u,v)?</code> is <code>O(deg)</code>, not O(1)</li>
+        </ul>
+        <pre><code data-snip="rep-list"></code></pre>
+      </div>
+
+      <div class="card">
+        <h3><span class="dot"></span>Adjacency Matrix</h3>
+        <p class="sub"><code>V×V</code> grid; cell = edge weight / bool.</p>
+        <div class="cx-row">
+          <span class="cx bad">O(V²) <b>space</b></span>
+          <span class="cx good">O(1) <b>edge lookup</b></span>
+        </div>
+        <ul class="tick">
+          <li>Check/insert/delete an edge in <code>O(1)</code></li>
+          <li>Great for dense graphs &amp; math (powers, Floyd-Warshall)</li>
+        </ul>
+        <ul class="tick con">
+          <li>Wastes memory on sparse graphs</li>
+          <li>Listing neighbors is <code>O(V)</code> — scans a whole row</li>
+        </ul>
+        <pre><code data-snip="rep-matrix"></code></pre>
+      </div>
+
+      <div class="card">
+        <h3><span class="dot"></span>Objects &amp; Pointers</h3>
+        <p class="sub">Node objects referencing neighbor objects.</p>
+        <div class="cx-row">
+          <span class="cx good">O(V+E) <b>space</b></span>
+        </div>
+        <ul class="tick">
+          <li>Natural in OOP; mirrors real domain models</li>
+          <li>Node carries its own payload &amp; methods</li>
+        </ul>
+        <ul class="tick con">
+          <li>No global index — hard to iterate all nodes</li>
+          <li>Pointer-chasing hurts cache locality</li>
+        </ul>
+        <pre><code data-snip="rep-objects"></code></pre>
+      </div>
+    </div>
+
+    <div class="callout">
+      <span class="lbl">Rule of thumb</span> &nbsp;Sparse graph → <b>adjacency list</b>. Dense graph or constant-time edge queries → <b>adjacency matrix</b>. Modeling a domain (game map, org chart) → <b>objects &amp; pointers</b>.
+    </div>
+  </section>
+
+  <!-- ============ TRAVERSAL ============ -->
+  <section id="traversal">
+    <div class="sec-head">
+      <p class="eyebrow">02 — Traversal</p>
+      <h2><a class="anchor" href="#traversal">Breadth-first &amp; depth-first search</a></h2>
+      <p>Both visit every vertex and edge once — <code>O(V+E)</code> time on an adjacency list, <code>O(V²)</code> on a matrix. The difference is the frontier data structure: a <b>queue</b> spreads out level by level, a <b>stack</b> (or recursion) plunges deep.</p>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h3><span class="dot"></span>BFS — Breadth-First</h3>
+        <p class="sub">Queue · explores nearest first · shortest path on unweighted graphs</p>
+        <div class="cx-row">
+          <span class="cx good">O(V+E) <b>time</b></span>
+          <span class="cx warn">O(V) <b>space</b></span>
+        </div>
+        <ul class="tick">
+          <li><span class="lbl">Best for</span> shortest path in # of edges, level-order, "nearest" queries</li>
+          <li>Mark visited <b>on enqueue</b>, not dequeue — else nodes get queued twice</li>
+        </ul>
+        <pre><code data-snip="bfs"></code></pre>
+      </div>
+
+      <div class="card">
+        <h3><span class="dot"></span>DFS — Depth-First</h3>
+        <p class="sub">Stack / recursion · explores deep first · backtracking</p>
+        <div class="cx-row">
+          <span class="cx good">O(V+E) <b>time</b></span>
+          <span class="cx good">O(h) <b>space</b></span>
+        </div>
+        <ul class="tick">
+          <li><span class="lbl">Best for</span> cycle detection, topological sort, connected components, path existence</li>
+          <li>Recursion depth = longest path; deep graphs can overflow the call stack → go iterative</li>
+        </ul>
+        <pre><code data-snip="dfs"></code></pre>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h3><span class="dot"></span>Iterative DFS</h3>
+      <p class="sub">An explicit stack avoids call-stack overflow on large or adversarial graphs.</p>
+      <pre><code data-snip="dfs-iter"></code></pre>
+    </div>
+  </section>
+
+  <!-- ============ COMPARE ============ -->
+  <section id="compare">
+    <div class="sec-head">
+      <p class="eyebrow">03 — Decision</p>
+      <h2><a class="anchor" href="#compare">BFS vs DFS: which one?</a></h2>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Dimension</th><th>BFS</th><th>DFS</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="cue">Frontier</td><td>Queue (FIFO)</td><td>Stack / recursion (LIFO)</td></tr>
+          <tr><td class="cue">Time</td><td><span class="cx good">O(V+E)</span></td><td><span class="cx good">O(V+E)</span></td></tr>
+          <tr><td class="cue">Extra space</td><td><span class="cx warn">O(V)</span> — a whole level can be huge</td><td><span class="cx good">O(h)</span> — height of the tree</td></tr>
+          <tr><td class="cue">Shortest path (unweighted)</td><td>✓ Yes — finds it directly</td><td>✗ No guarantee</td></tr>
+          <tr><td class="cue">Shines on</td><td>Wide, shallow graphs; "nearest" answers</td><td>Deep graphs; exhaustive / backtracking search</td></tr>
+          <tr><td class="cue">Classic uses</td><td>Level order, word ladder, flood fill radius, bipartite check</td><td>Topo sort, cycle detection, components, maze solving</td></tr>
+          <tr><td class="cue">Watch out</td><td>Memory blows up on high branching factor</td><td>Stack overflow on deep recursion</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ DIJKSTRA ============ -->
+  <section id="dijkstra">
+    <div class="sec-head">
+      <p class="eyebrow">04 — Weighted shortest path</p>
+      <h2><a class="anchor" href="#dijkstra">Dijkstra's algorithm</a></h2>
+      <p>Shortest path from a source on a graph with <b>non-negative</b> edge weights. It's BFS with a priority queue: always expand the closest unfinalized node. Once a node is popped, its distance is final (the greedy invariant that negative edges would break).</p>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>Lazy Dijkstra with a binary heap</h3>
+      <div class="cx-row">
+        <span class="cx warn">O((V+E) log V) <b>time</b></span>
+        <span class="cx warn">O(V) <b>space</b></span>
+      </div>
+      <ul class="tick">
+        <li><span class="lbl">Requires</span> all edge weights <code>≥ 0</code>. Negative edges → use <b>Bellman-Ford</b> <code>O(V·E)</code>.</li>
+        <li>"Lazy" deletion: push duplicates, skip a popped entry when its distance is stale.</li>
+      </ul>
+      <pre><code data-snip="dijkstra"></code></pre>
+      <div class="callout">
+        <span class="lbl">Whiteboard note</span> &nbsp;With a Fibonacci heap it's <code>O(E + V log V)</code>, but binary-heap Dijkstra is what you write in an interview.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ A* ============ -->
+  <section id="astar">
+    <div class="sec-head">
+      <p class="eyebrow">05 — Informed search</p>
+      <h2><a class="anchor" href="#astar">A* search</a></h2>
+      <p>Dijkstra guided toward a goal by a heuristic. It orders the frontier by <code>f(n) = g(n) + h(n)</code> — cost so far plus an <em>estimate</em> of cost remaining — so it explores toward the target instead of in all directions.</p>
+    </div>
+    <div class="card">
+      <h3><span class="dot"></span>A* on a weighted graph</h3>
+      <div class="cx-row">
+        <span class="cx warn">O(E log V) <b>typical</b></span>
+        <span class="cx bad">O(b^d) <b>worst case</b></span>
+      </div>
+      <ul class="tick">
+        <li><span class="lbl">Admissible</span> <code>h</code> never overestimates → A* returns the optimal path.</li>
+        <li><span class="lbl">Consistent</span> <code>h(u) ≤ w(u,v) + h(v)</code> → no node needs re-expansion.</li>
+        <li><code>h(n) = 0</code> collapses A* into Dijkstra; a perfect <code>h</code> walks straight to the goal.</li>
+      </ul>
+      <pre><code data-snip="astar"></code></pre>
+      <div class="callout">
+        <span class="lbl">Where it wins</span> &nbsp;Grid/road pathfinding where you can cheaply estimate distance-to-goal — e.g. Manhattan or Euclidean distance as <code>h</code>.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OPS TABLE ============ -->
+  <section id="ops">
+    <div class="sec-head">
+      <p class="eyebrow">06 — Reference</p>
+      <h2><a class="anchor" href="#ops">Operation complexity by representation</a></h2>
+      <p><code>V</code> = vertices, <code>E</code> = edges, <code>deg</code> = degree of a vertex.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Operation</th><th>Adjacency List</th><th>Adjacency Matrix</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="cue">Space</td><td><span class="cx good">O(V+E)</span></td><td><span class="cx bad">O(V²)</span></td></tr>
+          <tr><td class="cue">Add vertex</td><td><span class="cx good">O(1)</span></td><td><span class="cx bad">O(V²)</span> (resize)</td></tr>
+          <tr><td class="cue">Add edge</td><td><span class="cx good">O(1)</span></td><td><span class="cx good">O(1)</span></td></tr>
+          <tr><td class="cue">Remove edge</td><td><span class="cx warn">O(deg)</span></td><td><span class="cx good">O(1)</span></td></tr>
+          <tr><td class="cue">Edge exists? <code>(u,v)</code></td><td><span class="cx warn">O(deg)</span></td><td><span class="cx good">O(1)</span></td></tr>
+          <tr><td class="cue">Iterate neighbors of <code>u</code></td><td><span class="cx good">O(deg)</span></td><td><span class="cx warn">O(V)</span></td></tr>
+          <tr><td class="cue">BFS / DFS full traversal</td><td><span class="cx good">O(V+E)</span></td><td><span class="cx warn">O(V²)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ PATTERNS ============ -->
+  <section id="patterns">
+    <div class="sec-head">
+      <p class="eyebrow">07 — Pattern matching</p>
+      <h2><a class="anchor" href="#patterns">"When I see this, I reach for…"</a></h2>
+      <p>Interview graph problems are usually one of these in disguise. Map the prompt's cue to the technique fast.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Cue in the prompt</th><th>Reach for</th><th>Cost</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="cue">Shortest path, <b>unweighted</b></td><td>BFS from source</td><td><span class="cx good">O(V+E)</span></td></tr>
+          <tr><td class="cue">Shortest path, weights <code>≥ 0</code></td><td>Dijkstra (heap)</td><td><span class="cx warn">O((V+E) log V)</span></td></tr>
+          <tr><td class="cue">Shortest path with a goal estimate</td><td>A*</td><td><span class="cx warn">O(E log V)</span></td></tr>
+          <tr><td class="cue">Shortest path, <b>negative</b> weights</td><td>Bellman-Ford</td><td><span class="cx warn">O(V·E)</span></td></tr>
+          <tr><td class="cue">All-pairs shortest paths</td><td>Floyd-Warshall (matrix)</td><td><span class="cx bad">O(V³)</span></td></tr>
+          <tr><td class="cue">Ordering under dependencies</td><td>Topological sort (Kahn / DFS)</td><td><span class="cx good">O(V+E)</span></td></tr>
+          <tr><td class="cue">Cycle in a <b>directed</b> graph</td><td>DFS colors, or Kahn fails to consume all</td><td><span class="cx good">O(V+E)</span></td></tr>
+          <tr><td class="cue">Cycle in an <b>undirected</b> graph</td><td>Union-Find, or DFS w/ parent</td><td><span class="cx good">~O(E·α(V))</span></td></tr>
+          <tr><td class="cue">Count islands / regions / components</td><td>Flood fill (BFS/DFS) or Union-Find</td><td><span class="cx good">O(V+E)</span></td></tr>
+          <tr><td class="cue">Minimum spanning tree</td><td>Kruskal (Union-Find) or Prim (heap)</td><td><span class="cx warn">O(E log E)</span></td></tr>
+          <tr><td class="cue">Two-colorable / no odd cycle</td><td>BFS/DFS 2-coloring (bipartite check)</td><td><span class="cx good">O(V+E)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ GRID ============ -->
+  <section id="grid">
+    <div class="sec-head">
+      <p class="eyebrow">08 — Graphs in disguise</p>
+      <h2><a class="anchor" href="#grid">Grid &amp; matrix problems</a></h2>
+      <p>A 2D grid <em>is</em> a graph: each cell is a vertex, and edges connect it to its neighbors. You rarely build an explicit graph — you traverse the grid directly, using a direction vector for the neighbors. <code>V = rows·cols</code>, and each cell has ≤ 4 (or 8) edges, so traversal is <code>O(rows·cols)</code>.</p>
+    </div>
+
+    <div class="callout" style="margin-bottom:20px">
+      <span class="lbl">The key trick</span> &nbsp;Encode neighbors as a direction array instead of writing four <code>if</code> blocks. Use <b>4-directional</b> for orthogonal moves, <b>8-directional</b> when diagonals count.
+      <pre style="margin-top:12px"><code data-snip="dirs"></code></pre>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h3><span class="dot"></span>Count Islands — DFS flood fill</h3>
+        <p class="sub">Connected components on a grid · sink each island as you find it</p>
+        <div class="cx-row">
+          <span class="cx good">O(R·C) <b>time</b></span>
+          <span class="cx warn">O(R·C) <b>space</b></span>
+        </div>
+        <ul class="tick">
+          <li>Every unvisited land cell starts a new component; flood it to mark visited</li>
+          <li>Mutating the grid to <code>'0'</code> avoids a separate <code>visited</code> array</li>
+        </ul>
+        <pre><code data-snip="islands"></code></pre>
+      </div>
+
+      <div class="card">
+        <h3><span class="dot"></span>Shortest Path in a Grid — BFS</h3>
+        <p class="sub">Fewest steps through open cells · unweighted ⇒ BFS is optimal</p>
+        <div class="cx-row">
+          <span class="cx good">O(R·C) <b>time</b></span>
+          <span class="cx warn">O(R·C) <b>space</b></span>
+        </div>
+        <ul class="tick">
+          <li>BFS layer count = shortest number of steps (weights are all 1)</li>
+          <li>Mark visited <b>on enqueue</b>; the first time you pop the target, that's the answer</li>
+        </ul>
+        <pre><code data-snip="grid-bfs"></code></pre>
+      </div>
+    </div>
+
+    <div class="callout">
+      <span class="lbl">Escalate when…</span> &nbsp;Cells have <b>costs</b> (not all 1) → swap BFS for <b>Dijkstra</b>. Costs are only <b>0 or 1</b> (e.g. "walls you may break") → <b>0-1 BFS</b> with a deque: push cost-0 moves to the front, cost-1 to the back for <code>O(R·C)</code>. Need <b>multi-source</b> spread (rotting oranges, nearest exit) → seed the queue with <em>all</em> sources before starting BFS.
+    </div>
+  </section>
+
+  <!-- ============ BONUS ============ -->
+  <section id="bonus">
+    <div class="sec-head">
+      <p class="eyebrow">09 — Worth knowing</p>
+      <h2><a class="anchor" href="#bonus">Two building blocks that show up everywhere</a></h2>
+      <p>Topological sort and Union-Find are the backbone of dependency, ordering, and connectivity problems.</p>
+    </div>
+    <div class="grid cols-2">
+      <div class="card">
+        <h3><span class="dot"></span>Topological Sort — Kahn's</h3>
+        <p class="sub">Linear order of a DAG so every edge points forward. Empty result ⇒ a cycle exists.</p>
+        <div class="cx-row"><span class="cx good">O(V+E) <b>time</b></span></div>
+        <pre><code data-snip="topo"></code></pre>
+      </div>
+      <div class="card">
+        <h3><span class="dot"></span>Union-Find (DSU)</h3>
+        <p class="sub">Near-constant connectivity queries with path compression + union by rank.</p>
+        <div class="cx-row"><span class="cx good">O(α(V)) <b>per op</b></span></div>
+        <pre><code data-snip="dsu"></code></pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Graph Algorithms Cheat Sheet · built for interview prep</span>
+    <span class="mono">BFS · DFS · Dijkstra · A* · Kotlin</span>
+  </div>
+</footer>
+
+<script>
+  // ---- Kotlin snippets (real source; highlighter escapes everything) ----
+  const snippets = {
+    "rep-list": `// Adjacency list — the interview default
+val n = 6
+val graph = Array(n) { mutableListOf<Int>() }
+
+fun addEdge(u: Int, v: Int) {
+    graph[u].add(v)
+    graph[v].add(u)   // omit this line for a directed graph
+}`,
+
+    "rep-matrix": `// Adjacency matrix — O(1) edge lookup
+val n = 6
+val adj = Array(n) { IntArray(n) }   // 0 = no edge
+
+fun addEdge(u: Int, v: Int, w: Int = 1) {
+    adj[u][v] = w
+    adj[v][u] = w    // omit for directed
+}
+val connected = adj[u][v] != 0       // O(1)`,
+
+    "rep-objects": `// Objects & pointers — domain-friendly
+class Node(val id: Int, val label: String) {
+    val neighbors = mutableListOf<Node>()
+    fun link(other: Node) {
+        neighbors.add(other)
+        other.neighbors.add(this)
+    }
+}`,
+
+    "bfs": `fun bfs(graph: Array<MutableList<Int>>, start: Int): List<Int> {
+    val visited = BooleanArray(graph.size)
+    val queue = ArrayDeque<Int>()
+    val order = mutableListOf<Int>()
+
+    visited[start] = true          // mark on ENQUEUE
+    queue.addLast(start)
+
+    while (queue.isNotEmpty()) {
+        val node = queue.removeFirst()
+        order.add(node)
+        for (next in graph[node]) {
+            if (!visited[next]) {
+                visited[next] = true
+                queue.addLast(next)
+            }
+        }
+    }
+    return order
+}`,
+
+    "dfs": `fun dfs(graph: Array<MutableList<Int>>, start: Int): List<Int> {
+    val visited = BooleanArray(graph.size)
+    val order = mutableListOf<Int>()
+
+    fun visit(node: Int) {
+        visited[node] = true
+        order.add(node)
+        for (next in graph[node]) {
+            if (!visited[next]) visit(next)
+        }
+    }
+
+    visit(start)
+    return order
+}`,
+
+    "dfs-iter": `fun dfsIterative(graph: Array<MutableList<Int>>, start: Int): List<Int> {
+    val visited = BooleanArray(graph.size)
+    val stack = ArrayDeque<Int>()
+    val order = mutableListOf<Int>()
+    stack.addLast(start)
+
+    while (stack.isNotEmpty()) {
+        val node = stack.removeLast()
+        if (visited[node]) continue        // may be pushed twice
+        visited[node] = true
+        order.add(node)
+        for (next in graph[node]) {
+            if (!visited[next]) stack.addLast(next)
+        }
+    }
+    return order
+}`,
+
+    "dijkstra": `import java.util.PriorityQueue
+
+// graph[u] = list of (neighbor, weight)
+fun dijkstra(graph: Array<MutableList<Pair<Int, Int>>>, src: Int): IntArray {
+    val dist = IntArray(graph.size) { Int.MAX_VALUE }
+    dist[src] = 0
+    // min-heap of (node, distance), ordered by distance
+    val pq = PriorityQueue<IntArray>(compareBy { it[1] })
+    pq.add(intArrayOf(src, 0))
+
+    while (pq.isNotEmpty()) {
+        val (node, d) = pq.poll()
+        if (d > dist[node]) continue           // stale entry — skip
+        for ((next, w) in graph[node]) {
+            val nd = d + w
+            if (nd < dist[next]) {
+                dist[next] = nd
+                pq.add(intArrayOf(next, nd))
+            }
+        }
+    }
+    return dist
+}`,
+
+    "astar": `import java.util.PriorityQueue
+
+fun aStar(
+    graph: Array<MutableList<Pair<Int, Int>>>,
+    start: Int,
+    goal: Int,
+    h: (Int) -> Int            // admissible heuristic: est. cost to goal
+): Int {
+    val g = IntArray(graph.size) { Int.MAX_VALUE }
+    g[start] = 0
+    // order the frontier by f = g + h
+    val open = PriorityQueue<IntArray>(compareBy { it[1] })
+    open.add(intArrayOf(start, h(start)))
+
+    while (open.isNotEmpty()) {
+        val node = open.poll()[0]
+        if (node == goal) return g[node]
+        for ((next, w) in graph[node]) {
+            val tentative = g[node] + w
+            if (tentative < g[next]) {
+                g[next] = tentative
+                open.add(intArrayOf(next, tentative + h(next)))
+            }
+        }
+    }
+    return -1                  // goal unreachable
+}`,
+
+    "dirs": `// 4-directional neighbors (add diagonals for 8-dir)
+val dirs = arrayOf(
+    intArrayOf(-1, 0), intArrayOf(1, 0),   // up, down
+    intArrayOf(0, -1), intArrayOf(0, 1)    // left, right
+)
+// for ((dr, dc) in dirs) { val nr = r + dr; val nc = c + dc; ... }`,
+
+    "islands": `fun numIslands(grid: Array<CharArray>): Int {
+    if (grid.isEmpty()) return 0
+    val rows = grid.size; val cols = grid[0].size
+    var count = 0
+
+    fun sink(r: Int, c: Int) {
+        if (r < 0 || r >= rows || c < 0 || c >= cols) return
+        if (grid[r][c] != '1') return
+        grid[r][c] = '0'              // mark visited
+        sink(r - 1, c); sink(r + 1, c)
+        sink(r, c - 1); sink(r, c + 1)
+    }
+
+    for (r in 0 until rows)
+        for (c in 0 until cols)
+            if (grid[r][c] == '1') { count++; sink(r, c) }
+
+    return count
+}`,
+
+    "grid-bfs": `fun shortestPath(grid: Array<IntArray>): Int {
+    val rows = grid.size; val cols = grid[0].size
+    if (grid[0][0] == 1 || grid[rows-1][cols-1] == 1) return -1
+    val dirs = arrayOf(
+        intArrayOf(-1,0), intArrayOf(1,0), intArrayOf(0,-1), intArrayOf(0,1)
+    )
+    val queue = ArrayDeque<IntArray>()
+    queue.addLast(intArrayOf(0, 0))
+    grid[0][0] = 1                    // reuse grid as visited
+    var steps = 1
+
+    while (queue.isNotEmpty()) {
+        repeat(queue.size) {          // process one layer
+            val (r, c) = queue.removeFirst()
+            if (r == rows-1 && c == cols-1) return steps
+            for ((dr, dc) in dirs) {
+                val nr = r + dr; val nc = c + dc
+                if (nr in 0 until rows && nc in 0 until cols && grid[nr][nc] == 0) {
+                    grid[nr][nc] = 1
+                    queue.addLast(intArrayOf(nr, nc))
+                }
+            }
+        }
+        steps++
+    }
+    return -1                         // target unreachable
+}`,
+
+    "topo": `fun topoSort(graph: Array<MutableList<Int>>): List<Int> {
+    val n = graph.size
+    val indegree = IntArray(n)
+    for (u in 0 until n) for (v in graph[u]) indegree[v]++
+
+    val queue = ArrayDeque<Int>()
+    for (i in 0 until n) if (indegree[i] == 0) queue.addLast(i)
+
+    val order = mutableListOf<Int>()
+    while (queue.isNotEmpty()) {
+        val u = queue.removeFirst()
+        order.add(u)
+        for (v in graph[u]) if (--indegree[v] == 0) queue.addLast(v)
+    }
+    // fewer than n nodes ordered ⇒ the graph has a cycle
+    return if (order.size == n) order else emptyList()
+}`,
+
+    "dsu": `class UnionFind(n: Int) {
+    private val parent = IntArray(n) { it }
+    private val rank = IntArray(n)
+
+    fun find(x: Int): Int {
+        if (parent[x] != x) parent[x] = find(parent[x])  // path compression
+        return parent[x]
+    }
+
+    fun union(a: Int, b: Int): Boolean {
+        val ra = find(a); val rb = find(b)
+        if (ra == rb) return false        // already joined ⇒ cycle
+        when {
+            rank[ra] < rank[rb] -> parent[ra] = rb
+            rank[ra] > rank[rb] -> parent[rb] = ra
+            else -> { parent[rb] = ra; rank[ra]++ }
+        }
+        return true
+    }
+}`
+  };
+
+  // ---- Minimal Kotlin highlighter ----
+  const KW = new Set(["fun","val","var","if","else","for","while","return","class","import",
+    "in","is","as","continue","break","when","object","private","public","override",
+    "true","false","null","this","by","until","downTo","step"]);
+  const TYPES = new Set(["Int","IntArray","Boolean","BooleanArray","List","MutableList",
+    "Array","Pair","ArrayDeque","PriorityQueue","String","Unit","Double","Long","Set","Map",
+    "CharArray","Char"]);
+
+  const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+  function highlight(code) {
+    const re = /(\/\/[^\n]*)|("(?:\\.|[^"\\])*")|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)|([\s\S])/g;
+    let out = "";
+    let m;
+    while ((m = re.exec(code)) !== null) {
+      if (m[1]) out += `<span class="tok-c">${esc(m[1])}</span>`;
+      else if (m[2]) out += `<span class="tok-s">${esc(m[2])}</span>`;
+      else if (m[3]) out += `<span class="tok-n">${m[3]}</span>`;
+      else if (m[4]) {
+        if (KW.has(m[4])) out += `<span class="tok-k">${m[4]}</span>`;
+        else if (TYPES.has(m[4])) out += `<span class="tok-t">${m[4]}</span>`;
+        else out += m[4];
+      }
+      else out += esc(m[5]);
+    }
+    return out;
+  }
+
+  document.querySelectorAll("code[data-snip]").forEach(el => {
+    const key = el.getAttribute("data-snip");
+    if (snippets[key]) el.innerHTML = highlight(snippets[key]);
+  });
+</script>
+
+
+</body>
+</html>

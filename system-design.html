@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>System Design Patterns — Interview Cheat Sheet</title>
+</head>
+<body>
+<style>
+  :root {
+    --bg: #F4F6F3;
+    --surface: #FFFFFF;
+    --surface-2: #ECEFEA;
+    --ink: #1C2422;
+    --ink-soft: #4A5450;
+    --ink-faint: #75807B;
+    --line: #D8DED8;
+    --accent: #0F6E68;
+    --accent-soft: #E1EEEC;
+    --scale: #0F6E68;
+    --scale-bg: #E1EEEC;
+    --coord: #96660F;
+    --coord-bg: #F3EBDA;
+    --motion: #6D4FA0;
+    --motion-bg: #ECE6F4;
+    --code-bg: #EBEEE9;
+    --shadow: 0 1px 3px rgba(28, 36, 34, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161B19;
+      --surface: #1E2422;
+      --surface-2: #242B28;
+      --ink: #E4E9E6;
+      --ink-soft: #A8B2AD;
+      --ink-faint: #7D8883;
+      --line: #333C38;
+      --accent: #55B3AC;
+      --accent-soft: #1E3230;
+      --scale: #55B3AC;
+      --scale-bg: #1E3230;
+      --coord: #D3A251;
+      --coord-bg: #322A1B;
+      --motion: #AF95DC;
+      --motion-bg: #2B2438;
+      --code-bg: #262D2A;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161B19;
+    --surface: #1E2422;
+    --surface-2: #242B28;
+    --ink: #E4E9E6;
+    --ink-soft: #A8B2AD;
+    --ink-faint: #7D8883;
+    --line: #333C38;
+    --accent: #55B3AC;
+    --accent-soft: #1E3230;
+    --scale: #55B3AC;
+    --scale-bg: #1E3230;
+    --coord: #D3A251;
+    --coord-bg: #322A1B;
+    --motion: #AF95DC;
+    --motion-bg: #2B2438;
+    --code-bg: #262D2A;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --bg: #F4F6F3;
+    --surface: #FFFFFF;
+    --surface-2: #ECEFEA;
+    --ink: #1C2422;
+    --ink-soft: #4A5450;
+    --ink-faint: #75807B;
+    --line: #D8DED8;
+    --accent: #0F6E68;
+    --accent-soft: #E1EEEC;
+    --scale: #0F6E68;
+    --scale-bg: #E1EEEC;
+    --coord: #96660F;
+    --coord-bg: #F3EBDA;
+    --motion: #6D4FA0;
+    --motion-bg: #ECE6F4;
+    --code-bg: #EBEEE9;
+    --shadow: 0 1px 3px rgba(28, 36, 34, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.55;
+    margin: 0;
+    font-size: 15.5px;
+  }
+  code, .mono {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.88em;
+  }
+  code {
+    background: var(--code-bg);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+  }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px 80px; }
+
+  /* ---------- Header ---------- */
+  header.site {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 0;
+  }
+  .site-inner {
+    max-width: 960px; margin: 0 auto; padding: 0 20px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+  }
+  .site h1 {
+    font-size: 15px; font-weight: 700; margin: 0;
+    letter-spacing: 0.01em; white-space: nowrap;
+  }
+  .site h1 .sub { color: var(--ink-faint); font-weight: 500; }
+  .toolbar { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  #filter {
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 5px 10px; font-size: 13.5px; width: 190px;
+    font-family: inherit;
+  }
+  #filter:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .toolbar button {
+    background: var(--surface); color: var(--ink-soft);
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 5px 10px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  .toolbar button:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .toolbar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* ---------- Intro ---------- */
+  .intro { padding: 36px 0 8px; }
+  .intro h2.big {
+    font-size: clamp(24px, 4vw, 34px); font-weight: 800; letter-spacing: -0.02em;
+    margin: 0 0 10px; text-wrap: balance; line-height: 1.15;
+  }
+  .intro p.lede { color: var(--ink-soft); max-width: 62ch; margin: 0 0 4px; }
+  .intro p.src { color: var(--ink-faint); font-size: 13px; margin: 6px 0 0; }
+  .intro a { color: var(--accent); }
+
+  /* ---------- Legend chips / jump nav ---------- */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 0; }
+  .legend a {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 999px; padding: 5px 13px 5px 9px;
+    font-size: 13px; font-weight: 600; color: var(--ink-soft);
+    text-decoration: none;
+  }
+  .legend a:hover { border-color: var(--ink-faint); color: var(--ink); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .dot.scale { background: var(--scale); }
+  .dot.coord { background: var(--coord); }
+  .dot.motion { background: var(--motion); }
+  .legend-key { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0 0; font-size: 12.5px; color: var(--ink-faint); }
+  .legend-key span { display: inline-flex; align-items: center; gap: 6px; }
+
+  /* ---------- Section headings ---------- */
+  h2.rail {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.09em; color: var(--ink-faint);
+    margin: 44px 0 14px; display: flex; align-items: center; gap: 12px;
+  }
+  h2.rail::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  /* ---------- Symptom table ---------- */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); }
+  table.match { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+  table.match th {
+    text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--ink-faint); padding: 10px 16px; border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+  table.match td { padding: 10px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.match tr:last-child td { border-bottom: none; }
+  table.match td.sym { color: var(--ink); width: 46%; }
+  table.match td.pat { white-space: nowrap; }
+  table.match td.first { color: var(--ink-soft); }
+  .pat-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-weight: 650; color: var(--ink); text-decoration: none; font-size: 13.5px;
+  }
+  .pat-link:hover { color: var(--accent); }
+
+  /* ---------- Rules of thumb ---------- */
+  .rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 10px; }
+  .rule {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; box-shadow: var(--shadow);
+  }
+  .rule b { display: block; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13.5px; color: var(--accent); margin-bottom: 3px; font-variant-numeric: tabular-nums; }
+  .rule span { font-size: 13px; color: var(--ink-soft); }
+
+  /* ---------- Pattern cards ---------- */
+  details.pattern {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    margin: 0 0 12px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  details.pattern[open] { border-color: var(--ink-faint); }
+  details.pattern > summary {
+    list-style: none; cursor: pointer; padding: 16px 18px;
+    display: grid; grid-template-columns: auto 1fr auto; gap: 5px 12px; align-items: baseline;
+  }
+  details.pattern > summary::-webkit-details-marker { display: none; }
+  details.pattern > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  summary .dot { position: relative; top: -1px; }
+  summary .name { font-size: 17px; font-weight: 750; letter-spacing: -0.01em; }
+  summary .tag { grid-column: 2; color: var(--ink-soft); font-size: 13.5px; }
+  summary .chev {
+    grid-row: 1 / span 2; align-self: center; color: var(--ink-faint);
+    transition: transform 0.15s ease; font-size: 13px;
+  }
+  details.pattern[open] summary .chev { transform: rotate(90deg); }
+  .pattern-body { padding: 4px 18px 20px; border-top: 1px solid var(--line); }
+
+  .block { margin: 18px 0 0; }
+  .block > h3 {
+    font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--ink-faint); margin: 0 0 8px;
+  }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+  @media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+
+  ul.spot { margin: 0; padding: 0; list-style: none; }
+  ul.spot li { padding: 3px 0 3px 18px; position: relative; font-size: 14px; color: var(--ink-soft); }
+  ul.spot li::before { content: "▸"; position: absolute; left: 2px; color: var(--accent); font-size: 11px; top: 6px; }
+
+  ol.ladder { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+  ol.ladder li {
+    counter-increment: step; position: relative;
+    padding: 7px 0 7px 34px; font-size: 14px; color: var(--ink-soft);
+    border-left: 2px solid var(--line); margin-left: 11px;
+  }
+  ol.ladder li:last-child { border-left-color: transparent; }
+  ol.ladder li::before {
+    content: counter(step); position: absolute; left: -12px; top: 6px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    font-variant-numeric: tabular-nums;
+  }
+  ol.ladder b { color: var(--ink); font-weight: 650; }
+  .ladder-note { font-size: 12.5px; color: var(--ink-faint); margin: 8px 0 0 11px; padding-left: 23px; }
+
+  table.tech { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  table.tech td { padding: 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.tech tr:last-child td { border-bottom: none; }
+  table.tech td.t {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12.5px; font-weight: 600; color: var(--ink);
+    white-space: nowrap; padding-right: 16px; width: 1%;
+  }
+  table.tech td.w { color: var(--ink-soft); }
+
+  ul.dives { margin: 0; padding: 0; list-style: none; }
+  ul.dives li { padding: 4px 0 4px 20px; position: relative; font-size: 14px; color: var(--ink-soft); }
+  ul.dives li::before { content: "?"; position: absolute; left: 0; top: 4px; font-weight: 800; font-size: 12px; color: var(--coord); }
+  ul.dives li b { color: var(--ink); font-weight: 650; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span {
+    background: var(--surface-2); border-radius: 6px; padding: 3px 9px;
+    font-size: 12.5px; color: var(--ink-soft);
+  }
+
+  .callout {
+    background: var(--accent-soft); border-radius: 8px; padding: 10px 14px;
+    font-size: 13.5px; color: var(--ink); margin: 16px 0 0;
+  }
+  .callout b { color: var(--accent); }
+
+  /* combine box */
+  .combine {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .combine p { margin: 0 0 10px; color: var(--ink-soft); font-size: 14.5px; }
+  .combine p:last-child { margin-bottom: 0; }
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
+  .flow .step {
+    background: var(--surface-2); border-radius: 6px; padding: 5px 11px;
+    font-weight: 600; color: var(--ink);
+  }
+  .flow .step small { display: block; font-weight: 500; color: var(--ink-faint); font-size: 11.5px; }
+  .flow .arr { color: var(--ink-faint); }
+
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-faint); }
+  footer a { color: var(--accent); }
+
+  /* ---------- Section lede + reference nav ---------- */
+  .section-lede { color: var(--ink-soft); max-width: 68ch; margin: 0 0 16px; }
+  .refnav { margin-top: 12px; }
+  .refnav a { padding-left: 13px; }
+
+  /* ---------- Fundamentals cards ---------- */
+  .fcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 12px; }
+  .fcard {
+    background: var(--surface); border: 1px solid var(--line);
+    border-top: 3px solid var(--accent); border-radius: 12px;
+    padding: 15px 17px 16px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column;
+  }
+  .fcard.coord { border-top-color: var(--coord); }
+  .fcard.motion { border-top-color: var(--motion); }
+  .fcard .eyebrow {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--accent); margin: 0 0 5px;
+  }
+  .fcard.coord .eyebrow { color: var(--coord); }
+  .fcard.motion .eyebrow { color: var(--motion); }
+  .fcard h3.ft { font-size: 16px; font-weight: 750; letter-spacing: -0.01em; margin: 0 0 9px; text-wrap: balance; }
+  .fcard ul.spot li b, .fcard ul.spot li em { color: var(--ink); font-weight: 650; font-style: normal; }
+  .fcard .say {
+    margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--line);
+    font-size: 12.5px; color: var(--ink-faint);
+  }
+  .fcard .say b { color: var(--ink); font-weight: 700; }
+
+  /* ---------- Reference tables (failure / security) ---------- */
+  table.match td.lbl { color: var(--ink); font-weight: 650; white-space: nowrap; width: 1%; }
+  table.match td.desc { color: var(--ink-soft); }
+  table.match td code { font-size: 12px; white-space: nowrap; }
+
+  .hidden { display: none !important; }
+  #no-match { color: var(--ink-faint); font-size: 14px; padding: 16px 0; display: none; }
+</style>
+
+<header class="site">
+  <div class="site-inner">
+    <h1>System Design Patterns <span class="sub">· interview cheat sheet</span></h1>
+    <div class="toolbar">
+      <input id="filter" type="search" placeholder="Filter (e.g. redis, hot key)…" aria-label="Filter patterns by keyword">
+      <button id="expand-all" type="button">Expand all</button>
+      <button id="collapse-all" type="button">Collapse all</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="intro">
+    <h2 class="big">Eight patterns cover almost every system design interview.</h2>
+    <p class="lede">Most interview problems are combinations of a small set of recurring patterns. Identify the pattern first, then walk its solution ladder from simple to complex — naming the technology and the trade-off at each rung. Start with the symptom table below, then expand any pattern for the details. The <a href="#fundamentals">fundamentals</a>, <a href="#failure">failure playbook</a>, and <a href="#security">security</a> sections underneath cut across every problem — that's where a solid answer becomes a senior one.</p>
+    <p class="src">Condensed from <a href="https://www.hellointerview.com/learn/system-design/in-a-hurry/patterns" target="_blank" rel="noopener">Hello Interview — System Design Patterns</a>.</p>
+
+    <nav class="legend" aria-label="Jump to pattern">
+      <a href="#scaling-reads"><span class="dot scale"></span>Scaling Reads</a>
+      <a href="#scaling-writes"><span class="dot scale"></span>Scaling Writes</a>
+      <a href="#contention"><span class="dot coord"></span>Contention</a>
+      <a href="#long-running"><span class="dot coord"></span>Long-Running Tasks</a>
+      <a href="#multi-step"><span class="dot coord"></span>Multi-Step Processes</a>
+      <a href="#realtime"><span class="dot motion"></span>Realtime Updates</a>
+      <a href="#large-blobs"><span class="dot motion"></span>Large Files</a>
+      <a href="#proximity"><span class="dot motion"></span>Proximity Search</a>
+    </nav>
+    <div class="legend-key">
+      <span><span class="dot scale"></span>Scale &amp; throughput</span>
+      <span><span class="dot coord"></span>Coordination &amp; state</span>
+      <span><span class="dot motion"></span>Data in motion</span>
+    </div>
+    <nav class="legend refnav" aria-label="Jump to reference section">
+      <a href="#fundamentals">Fundamentals</a>
+      <a href="#failure">Failure &amp; recovery</a>
+      <a href="#security">Security</a>
+      <a href="#closing">Scale checklist</a>
+    </nav>
+  </section>
+
+  <h2 class="rail" id="which">Which pattern is this problem?</h2>
+  <div class="table-scroll">
+    <table class="match">
+      <thead><tr><th>The problem says…</th><th>Pattern</th><th>Reach for first</th></tr></thead>
+      <tbody>
+        <tr><td class="sym">"Millions of users viewing…", feeds, product pages, content-heavy apps</td><td class="pat"><a class="pat-link" href="#scaling-reads"><span class="dot scale"></span>Scaling Reads</a></td><td class="first">Indexes → replicas → cache</td></tr>
+        <tr><td class="sym">"Millions of events/sec…", clickstreams, metrics, likes, location pings</td><td class="pat"><a class="pat-link" href="#scaling-writes"><span class="dot scale"></span>Scaling Writes</a></td><td class="first">Shard → queue → batch</td></tr>
+        <tr><td class="sym">"Last ticket / last item / highest bid" — two users want the same thing</td><td class="pat"><a class="pat-link" href="#contention"><span class="dot coord"></span>Contention</a></td><td class="first">Atomic conditional write</td></tr>
+        <tr><td class="sym">Work takes seconds-to-minutes: transcoding, reports, bulk imports</td><td class="pat"><a class="pat-link" href="#long-running"><span class="dot coord"></span>Long-Running Tasks</a></td><td class="first">Queue + workers + job ID</td></tr>
+        <tr><td class="sym">Multi-service flow over hours/days: orders, payments, onboarding</td><td class="pat"><a class="pat-link" href="#multi-step"><span class="dot coord"></span>Multi-Step Processes</a></td><td class="first">Workflow engine (Temporal)</td></tr>
+        <tr><td class="sym">"Live", "instant", "collaborative" — server must push to clients</td><td class="pat"><a class="pat-link" href="#realtime"><span class="dot motion"></span>Realtime Updates</a></td><td class="first">SSE or WebSockets + pub/sub</td></tr>
+        <tr><td class="sym">Users upload/download photos, videos, documents &gt; 10&nbsp;MB</td><td class="pat"><a class="pat-link" href="#large-blobs"><span class="dot motion"></span>Large Files</a></td><td class="first">Presigned URLs + S3 + CDN</td></tr>
+        <tr><td class="sym">"Nearby", "within 5 miles" — search by location</td><td class="pat"><a class="pat-link" href="#proximity"><span class="dot motion"></span>Proximity Search</a></td><td class="first">Geohash / PostGIS / Redis geo</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="rail" id="rules">Numbers worth memorizing</h2>
+  <div class="rules">
+    <div class="rule"><b>10:1 → 100:1</b><span>Typical read-to-write ratio; content-heavy apps skew even higher.</span></div>
+    <div class="rule"><b>&gt; 10 MB</b><span>If a file is this big and doesn't need SQL queries, it belongs in blob storage.</span></div>
+    <div class="rule"><b>30–60 s</b><span>Typical web server timeout — anything slower must move to async workers.</span></div>
+    <div class="rule"><b>11 nines</b><span>S3 durability (99.999999999%) — say it when justifying blob storage.</span></div>
+    <div class="rule"><b>5 chars ≈ 5 km</b><span>Geohash precision: 5 characters ≈ 5 km cell; 9 characters ≈ 5 m.</span></div>
+    <div class="rule"><b>100K+ items</b><span>Below this, scan and filter by distance; geospatial indexes aren't worth it.</span></div>
+  </div>
+
+  <h2 class="rail" id="fundamentals">The four fundamentals every answer rests on</h2>
+  <p class="section-lede">Before you reach for a pattern, frame the problem along these four axes — interviewers listen for them by name. Each card ends with the sentence worth saying out loud.</p>
+  <div class="fcards">
+    <div class="fcard coord">
+      <p class="eyebrow">Storage &amp; movement</p>
+      <h3 class="ft">Data Flow</h3>
+      <ul class="spot">
+        <li>Trace one request end to end — client → load balancer → API → cache → database → back. Name every hop and where the data rests.</li>
+        <li><b>SQL</b> for relations, transactions, and ad-hoc queries; <b>NoSQL</b> (key-value, document, wide-column) for scale, flexible schema, or a single known access pattern.</li>
+        <li>Index the columns you filter and sort on; denormalize to kill joins on the hot read path.</li>
+        <li>Keep the hot path in memory — low latency is a data-placement problem, not a faster-CPU one.</li>
+      </ul>
+      <p class="say"><b>Say:</b> reads and writes have different shapes — model each for its own access pattern.</p>
+    </div>
+    <div class="fcard">
+      <p class="eyebrow">Throughput</p>
+      <h3 class="ft">Scalability</h3>
+      <ul class="spot">
+        <li><b>Vertical</b> (bigger box) is simplest but caps at one machine; <b>horizontal</b> (more boxes) scales without limit and adds coordination.</li>
+        <li>Keep services stateless so they scale out behind a load balancer; push state down to the datastore.</li>
+        <li>Cache reads (Redis, CDN); shard and partition writes by a key that spreads load evenly.</li>
+        <li>The four levers: load balancing, read replicas, caching, and database partitioning.</li>
+      </ul>
+      <p class="say"><b>Say:</b> scale the tier that's actually the bottleneck — measure before you scale.</p>
+    </div>
+    <div class="fcard motion">
+      <p class="eyebrow">Reliability</p>
+      <h3 class="ft">Fault Tolerance</h3>
+      <ul class="spot">
+        <li>No single point of failure: redundant instances across zones, health checks, and automatic failover.</li>
+        <li>Replicate data (leader + followers); a follower is promoted the moment the primary is lost.</li>
+        <li>Contain the blast radius with timeouts, retries, circuit breakers, and bulkheads.</li>
+        <li>Degrade gracefully — serve stale cache or a reduced experience instead of a hard error.</li>
+      </ul>
+      <p class="say"><b>Say:</b> assume every component will fail — redundancy plus failover keeps the service up.</p>
+    </div>
+    <div class="fcard">
+      <p class="eyebrow">The trade-off</p>
+      <h3 class="ft">Consistency vs Availability</h3>
+      <ul class="spot">
+        <li>A partition <em>will</em> happen (CAP) — you only choose what breaks. <b>CP:</b> stall or reject to stay correct (payments, inventory, bookings). <b>AP:</b> keep serving and reconcile later (feeds, likes, presence).</li>
+        <li>Strong consistency = read-your-writes and higher latency; eventual = fast, cheap, briefly stale.</li>
+        <li>Choose per feature, not per system — a bank balance is CP, the like counter beside it can be AP.</li>
+        <li>Replication lag is this choice in disguise: write to primary, read a lagging replica, get stale data.</li>
+      </ul>
+      <p class="say"><b>Say:</b> name which side the feature needs and why — that is the entire question.</p>
+    </div>
+  </div>
+
+  <h2 class="rail" id="patterns">The patterns</h2>
+  <div id="no-match">No patterns match that filter.</div>
+
+  <!-- ============ SCALING READS ============ -->
+  <details class="pattern" id="scaling-reads">
+    <summary>
+      <span class="dot scale"></span><span class="name">Scaling Reads</span><span class="chev">▶</span>
+      <span class="tag">Read traffic dwarfs writes — serve the same data to millions without melting the database.</span>
+    </summary>
+    <div class="pattern-body">
+      <div class="block">
+        <h3>Spot it when</h3>
+        <ul class="spot">
+          <li>One Instagram feed load fires 100+ queries while the user writes once a day.</li>
+          <li>The interviewer says "millions of daily active users" but writes are rare.</li>
+          <li>The same popular content is requested over and over (hot keys).</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Solution ladder — climb only as far as needed</h3>
+        <ol class="ladder">
+          <li><b>Optimize inside the database.</b> Add indexes on query columns, tune slow queries, denormalize to avoid joins, upgrade hardware. Cheapest wins first.</li>
+          <li><b>Add read replicas.</b> Copies of the database serve reads; the primary handles writes. Scales horizontally but introduces replication lag.</li>
+          <li><b>Add external caching.</b> Redis in front of the database for hot data; a CDN at the edge for static or cacheable content. Accept some staleness in exchange for massive throughput.</li>
+        </ol>
+        <p class="ladder-note">Say the order out loud — jumping straight to "add a cache" without trying indexes first reads as unseasoned.</p>
+      </div>
+      <div class="cols">
+        <div class="block">
+          <h3>Tech to name &amp; why</h3>
+          <table class="tech">
+            <tr><td class="t">Postgres/MySQL</td><td class="w">Start here; indexes and denormalization go surprisingly far.</td></tr>
+            <tr><td class="t">Read replicas</td><td class="w">Native to most RDBMSs; spread read load with no app rewrite.</td></tr>
+            <tr><td class="t">Redis</td><td class="w">In-memory cache for hot keys; sub-millisecond reads.</td></tr>
+            <tr><td class="t">CDN</td><td class="w">Pushes cacheable content to the edge, off your origin entirely.</td></tr>
+            <tr><td class="t">Elasticsearch</td><td class="w">Offload text-search reads the primary database is bad at.</td></tr>
+          </table>
+        </div>
+        <div class="block">
+          <h3>Deep dives to expect</h3>
+          <ul class="dives">
+            <li><b>Cache invalidation</b> — how fresh must data be? TTLs vs. write-through vs. explicit invalidation.</li>
+            <li><b>Replication lag</b> — user writes then immediately reads a stale replica; read-your-own-writes.</li>
+            <li><b>Cache stampede</b> — a hot key expires and thousands of requests rebuild it at once; use locks or early refresh.</li>
+            <li><b>Hot keys</b> — one celebrity post overwhelms a single cache node.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="block">
+        <h3>Seen in</h3>
+        <div class="chips"><span>Instagram / news feeds</span><span>Product catalogs</span><span>URL shortener (Bitly)</span><span>Twitter timelines</span></div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ============ SCALING WRITES ============ -->
+  <details class="pattern" id="scaling-writes">
+    <summary>
+      <span class="dot scale"></span><span class="name">Scaling Writes</span><span class="chev">▶</span>
+      <span class="tag">Write volume exceeds what one database can absorb — partition, buffer, and batch.</span>
+    </summary>
+    <div class="pattern-body">
+      <div class="block">
+        <h3>Spot it when</h3>
+        <ul class="spot">
+          <li>High-throughput ingestion: clickstreams, metrics, GPS pings, likes.</li>
+          <li>Bursty traffic — flash sales, live events — that spikes far above steady state.</li>
+          <li>Disk I/O, CPU, or network on a single writer node is the stated bottleneck.</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Solution ladder</h3>
+        <ol class="ladder">
+          <li><b>Vertical scaling + the right database.</b> Bigger box first; consider write-optimized stores (LSM-tree databases like Cassandra) over B-tree RDBMSs.</li>
+          <li><b>Shard and partition.</b> Horizontal sharding splits data across instances by a partition key; vertical partitioning gives each entity type its own database. Choosing a partition key that spreads load evenly is <em>the</em> critical decision.</li>
+          <li><b>Buffer bursts with queues; shed load.</b> A queue (Kafka) absorbs spikes and lets the database drain at its own pace; under extreme load, explicitly reject or defer low-value writes.</li>
+          <li><b>Batch and aggregate hierarchically.</b> Combine many small writes into one (e.g. count events locally, flush every second; aggregate local → regional → global).</li>
+        </ol>
+      </div>
+      <div class="cols">
+        <div class="block">
+          <h3>Tech to name &amp; why</h3>
+          <table class="tech">
+            <tr><td class="t">Cassandra</td><td class="w">LSM storage engine is built for heavy sequential writes; masterless scaling.</td></tr>
+            <tr><td class="t">Kafka</td><td class="w">Durable, high-throughput buffer between producers and the database.</td></tr>
+            <tr><td class="t">DynamoDB</td><td class="w">Managed partitioning with per-partition throughput guarantees.</td></tr>
+            <tr><td class="t">Redis counters</td><td class="w">In-memory pre-aggregation before flushing batches downstream.</td></tr>
+          </table>
+        </div>
+        <div class="block">
+          <h3>Deep dives to expect</h3>
+          <ul class="dives">
+            <li><b>Hot partitions</b> — one key (a viral video) gets disproportionate writes; salt the key or split hot keys dynamically.</li>
+            <li><b>Resharding</b> — adding shards later without downtime; consistent hashing limits data movement.</li>
+            <li><b>Queue trade-off</b> — buffering adds latency and eventual consistency; say so before the interviewer does.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="block">
+        <h3>Seen in</h3>
+        <div class="chips"><span>Ad click aggregator</span><span>YouTube Top-K</span><span>Rate limiter</span><span>Strava</span><span>Metrics/monitoring</span><span>FB post search</span></div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ============ CONTENTION ============ -->
+  <details class="pattern" id="contention">
+    <summary>
+      <span class="dot coord"></span><span class="name">Dealing with Contention</span><span class="chev">▶</span>
+      <span class="tag">Many users compete for one resource — prevent double-booking without killing throughput.</span>
+    </summary>
+    <div class="pattern-body">
+      <div class="block">
+        <h3>Spot it when</h3>
+        <ul class="spot">
+          <li>Finite inventory: the last concert ticket, seat, or item in stock.</li>
+          <li>Auctions and bidding — the highest bid must win exactly once.</li>
+          <li>Any read-check-write sequence: two requests read "1 left", both validate, both decrement → oversold. The read and write aren't atomic.</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Solution ladder</h3>
+        <ol class="ladder">
+          <li><b>Conditional (atomic) writes.</b> Push the check into the write itself: <code>UPDATE tickets SET qty = qty - 1 WHERE qty &gt; 0</code>. The database serializes it for you — solves most interview problems in one line.</li>
+          <li><b>Pessimistic locking.</b> <code>SELECT … FOR UPDATE</code> locks the row before modifying. Safe but holds locks — throughput suffers when everyone wants the same row.</li>
+          <li><b>Optimistic concurrency control.</b> Read a version number, write only if the version is unchanged, retry on conflict. Great when conflicts are rare; wasteful when they're constant.</li>
+          <li><b>Distributed locks / queue serialization.</b> When state spans multiple systems: Redis locks with TTLs, or funnel all operations on one resource through a queue so a single consumer applies them in order.</li>
+        </ol>
+        <p class="ladder-note">Prefer the single-database solution. Reaching for a distributed lock when one Postgres transaction would do is a classic overengineering flag.</p>
+      </div>
+      <div class="cols">
+        <div class="block">
+          <h3>Tech to name &amp; why</h3>
+          <table class="tech">
+            <tr><td class="t">Postgres transactions</td><td class="w">ACID + row locks handle most contention inside one database.</td></tr>
+            <tr><td class="t">Redis (SETNX + TTL)</td><td class="w">Simple distributed lock; TTL prevents a crashed holder from deadlocking everyone.</td></tr>
+            <tr><td class="t">Kafka (per-key ordering)</td><td class="w">Partition by resource ID → all ops on one item processed serially, no locks.</td></tr>
+            <tr><td class="t">ZooKeeper/etcd</td><td class="w">Battle-tested coordination when you truly need distributed consensus.</td></tr>
+          </table>
+        </div>
+        <div class="block">
+          <h3>Deep dives to expect</h3>
+          <ul class="dives">
+            <li><b>Deadlocks</b> — with pessimistic locking, acquire locks in a consistent global order; use lock timeouts.</li>
+            <li><b>ABA problem</b> — optimistic checks fooled by a value changing and changing back; use monotonic version numbers, not values.</li>
+            <li><b>Hot-resource throughput</b> — everyone wants the same item; serialize via queue, or reserve with expiry (hold the ticket 10 minutes, release if unpaid).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="block">
+        <h3>Seen in</h3>
+        <div class="chips"><span>Ticketmaster</span><span>Online auction</span><span>Flash sales</span><span>Payment systems</span><span>Seat/inventory reservation</span></div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ============ LONG-RUNNING TASKS ============ -->
+  <details class="pattern" id="long-running">
+    <summary>
+      <span class="dot coord"></span><span class="name">Managing Long-Running Tasks</span><span class="chev">▶</span>
+      <span class="tag">Work takes too long for a request — acknowledge instantly, process in the background.</span>
+    </summary>
+    <div class="pattern-body">
+      <div class="block">
+        <h3>Spot it when</h3>
+        <ul class="spot">
+          <li>Video transcoding, PDF/report generation, image resizing, CSV imports, bulk email.</li>
+          <li>Any operation that could exceed the typical 30–60 s web server timeout.</li>
+          <li>The user needs an immediate response but the work itself can wait.</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>The architecture — say it in one breath</h3>
+        <ol class="ladder">
+          <li><b>Accept &amp; enqueue.</b> The web server validates the request, pushes a job onto a queue, writes a <code>pending</code> row to a status table, and returns a job ID in milliseconds.</li>
+          <li><b>Workers process.</b> A separate pool of workers pulls jobs from the queue and does the heavy lifting — scaled independently of the web tier.</li>
+          <li><b>Report status.</b> Workers update the status database (<code>pending → running → done/failed</code>); the client polls the job ID or gets pushed an update (see <a class="pat-link" style="display:inline" href="#realtime">Realtime Updates</a>).</li>
+        </ol>
+      </div>
+      <div class="cols">
+        <div class="block">
+          <h3>Tech to name &amp; why</h3>
+          <table class="tech">
+            <tr><td class="t">SQS / RabbitMQ</td><td class="w">Purpose-built job queues: visibility timeouts, retries, dead-letter queues.</td></tr>
+            <tr><td class="t">Kafka</td><td class="w">When jobs are events at huge scale and ordering/replay matter.</td></tr>
+            <tr><td class="t">Redis (as queue)</td><td class="w">Lightweight option when you already run Redis; fine for modest scale.</td></tr>
+            <tr><td class="t">Lambda / ECS workers</td><td class="w">Elastic worker pools that scale with queue depth.</td></tr>
+          </table>
+        </div>
+        <div class="block">
+          <h3>Deep dives to expect</h3>
+          <ul class="dives">
+            <li><b>Worker dies mid-job</b> — visibility timeout returns the job to the queue; another worker retries.</li>
+            <li><b>Poison messages</b> — after N failed retries, park the job in a dead-letter queue for inspection.</li>
+            <li><b>Duplicate execution</b> — at-least-once delivery means workers must be idempotent (dedupe by job ID).</li>
+            <li><b>Backpressure</b> — queue grows faster than workers drain it; autoscale workers, or shed/reject new jobs.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout"><b>Don't overreach:</b> if the work reliably finishes in &lt; 1 s, synchronous is simpler and better. Introduce the queue only when timeouts or user experience demand it.</div>
+      <div class="block">
+        <h3>Seen in</h3>
+        <div class="chips"><span>YouTube uploads (transcoding)</span><span>Dropbox</span><span>Report generation</span><span>Newsletter send</span><span>LeetCode code judging</span></div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ============ MULTI-STEP PROCESSES ============ -->
+  <details class="pattern" id="multi-step">
+    <summary>
+      <span class="dot coord"></span><span class="name">Multi-Step Processes</span><span class="chev">▶</span>
+      <span class="tag">A workflow spans many services over hours or days — it must survive crashes mid-flight.</span>
+    </summary>
+    <div class="pattern-body">
+      <div class="block">
+        <h3>Spot it when</h3>
+        <ul class="spot">
+          <li>Order fulfillment: charge payment → reserve inventory → ship → confirm — any step can fail.</li>
+          <li>Flows with external dependencies (payment gateways) or human steps (approvals).</li>
+          <li>The interviewer asks "what if the server crashes between step 2 and step 3?"</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Solution ladder</h3>
+        <ol class="ladder">
+          <li><b>Single-server orchestration.</b> One service calls steps in order, persisting state in a database between steps. Fine until the orchestrator itself crashes or steps take days.</li>
+          <li><b>Event-driven choreography.</b> Each service reacts to the previous service's events (via Kafka). Decoupled, but the overall flow lives nowhere — debugging "where is order #123 stuck?" gets painful.</li>
+          <li><b>Saga pattern.</b> Each step has a compensating action (refund, release inventory) that runs to undo work when a later step fails — distributed "rollback" without distributed transactions.</li>
+          <li><b>Workflow engine with durable execution.</b> Define the flow declaratively; the engine checkpoints every step, resumes after crashes, and handles retries, timers, and versioning. The mature answer for anything complex.</li>
+        </ol>
+      </div>
+      <div class="cols">
+        <div class="block">
+          <h3>Tech to name &amp; why</h3>
+          <table class="tech">
+            <tr><td class="t">Temporal</td><td class="w">Durable execution — workflows written as code, state checkpointed automatically, survives crashes and deploys.</td></tr>
+            <tr><td class="t">AWS Step Functions</td><td class="w">Managed declarative state machines; native AWS service integration.</td></tr>
+            <tr><td class="t">Airflow</td><td class="w">Scheduled batch DAGs (data pipelines) — not per-user transactional flows.</td></tr>
+            <tr><td class="t">Kafka (events)</td><td class="w">Backbone for choreography when loose coupling matters more than visibility.</td></tr>
+          </table>
+        </div>
+        <div class="block">
+          <h3>Deep dives to expect</h3>
+          <ul class="dives">
+            <li><b>Crash mid-saga</b> — state is persisted per step; the engine (or a recovery job) resumes or compensates.</li>
+            <li><b>Idempotency</b> — retries must not double-charge; idempotency keys on every external call.</li>
+            <li><b>Versioning</b> — deploying a new workflow definition while thousands are in flight.</li>
+            <li><b>External events</b> — waiting days for a human approval or webhook; timers and timeouts.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout"><b>Why interviewers love it:</b> it separates system concerns (crashes, retries) from business concerns (what if the item is out of stock?) — mixing the two is what makes real systems brittle.</div>
+      <div class="block">
+        <h3>Seen in</h3>
+        <div class="chips"><span>Uber trip lifecycle</span><span>Payment systems</span><span>E-commerce checkout</span><span>User onboarding</span><span>AI agent pipelines</span></div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ============ REALTIME UPDATES ============ -->
+  <details class="pattern" id="realtime">
+    <summary>
+      <span class="dot motion"></span><span class="name">Pushing Realtime Updates</span><span class="chev">▶</span>
+      <span class="tag">Clients need changes the moment they happen — the server must push, not wait to be asked.</span>
+    </summary>
+    <div class="pattern-body">
+      <div class="block">
+        <h3>Spot it when</h3>
+        <ul class="spot">
+          <li>Chat, live comments, collaborative editing, live dashboards, ride tracking.</li>
+          <li>The words "live", "instant", or "real-time" appear in the requirements.</li>
+          <li>Think in <b>two hops</b>: (1) how updates reach the client, (2) how updates reach the right server.</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Hop 1 — server to client, simplest first</h3>
+        <ol class="ladder">
+          <li><b>Simple polling.</b> Client asks every N seconds. Trivial to build, wasteful, latency = poll interval. A fine answer when "real-time" really means "within 30 seconds".</li>
+          <li><b>Long polling.</b> Server holds the request open until data arrives. Better latency, still HTTP-simple.</li>
+          <li><b>Server-Sent Events (SSE).</b> One long-lived HTTP connection, server streams one-way updates. The sweet spot for notifications, feeds, and progress bars — simpler than WebSockets.</li>
+          <li><b>WebSockets.</b> Persistent full-duplex connection. The answer when clients also send frequently: chat, games, collaborative editing. Costs: stateful servers, load-balancer support, reconnection logic.</li>
+          <li><b>WebRTC.</b> Peer-to-peer — reserve for audio/video calls and screen sharing.</li>
+        </ol>
+      </div>
+      <div class="block">
+        <h3>Hop 2 — getting updates to the right server</h3>
+        <ul class="spot">
+          <li><b>Pub/Sub (Redis Pub/Sub, Kafka):</b> every connection server subscribes to topics; publishers stay decoupled from wherever clients are connected. Default choice.</li>
+          <li><b>Consistent hashing:</b> route each user/room to a specific stateful server so state lives with the connection — for heavier per-connection processing (e.g. a Google Doc's edit state).</li>
+        </ul>
+      </div>
+      <div class="cols">
+        <div class="block">
+          <h3>Tech to name &amp; why</h3>
+          <table class="tech">
+            <tr><td class="t">WebSockets</td><td class="w">Full-duplex; the only choice for frequent client→server traffic.</td></tr>
+            <tr><td class="t">SSE</td><td class="w">One-way push over plain HTTP; auto-reconnects; far less infra pain.</td></tr>
+            <tr><td class="t">Redis Pub/Sub</td><td class="w">Fast fan-out of messages to whichever server holds the connection.</td></tr>
+            <tr><td class="t">Kafka</td><td class="w">Durable pub/sub when updates must not be lost or need replay.</td></tr>
+          </table>
+        </div>
+        <div class="block">
+          <h3>Deep dives to expect</h3>
+          <ul class="dives">
+            <li><b>Reconnection</b> — clients drop and resume; need last-event IDs so missed messages replay.</li>
+            <li><b>Fan-out</b> — a celebrity with millions of followers posts once; push to online users, lazily deliver to the rest.</li>
+            <li><b>Ordering</b> — messages traversing different servers must render in sequence; per-conversation sequence numbers.</li>
+            <li><b>Connection state</b> — millions of open sockets need heartbeats and a registry of who's connected where.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="block">
+        <h3>Seen in</h3>
+        <div class="chips"><span>WhatsApp</span><span>Google Docs</span><span>Uber (driver tracking)</span><span>FB Live comments</span><span>Robinhood</span><span>Online chess</span><span>ChatGPT streaming</span></div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ============ LARGE BLOBS ============ -->
+  <details class="pattern" id="large-blobs">
+    <summary>
+      <span class="dot motion"></span><span class="name">Handling Large Files</span><span class="chev">▶</span>
+      <span class="tag">Uploads and downloads of big files — move bytes directly between client and storage.</span>
+    </summary>
+    <div class="pattern-body">
+      <div class="block">
+        <h3>Spot it when</h3>
+        <ul class="spot">
+          <li>Users upload videos, photos, or documents — anything over ~10 MB.</li>
+          <li>Routing file bytes through your API servers would make their bandwidth the bottleneck.</li>
+          <li>Remember: databases are great at structured data and queries, terrible at large binaries.</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>The architecture</h3>
+        <ol class="ladder">
+          <li><b>Presigned upload URL.</b> Client asks your API "I want to upload X"; API writes a metadata row (<code>status: uploading</code>) and returns a short-lived presigned S3 URL scoped to that one object.</li>
+          <li><b>Client uploads directly to S3.</b> Bytes never touch your servers. For big files, use multipart upload: chunks upload independently and in parallel, failed chunks retry alone — this is what makes uploads resumable.</li>
+          <li><b>Confirm completion.</b> An S3 event notification (or client callback) flips the metadata row to <code>ready</code>.</li>
+          <li><b>Download via CDN.</b> Serve reads through CloudFront with presigned/signed URLs — edge latency, zero origin load.</li>
+        </ol>
+      </div>
+      <div class="cols">
+        <div class="block">
+          <h3>Tech to name &amp; why</h3>
+          <table class="tech">
+            <tr><td class="t">S3 / GCS / Blob Storage</td><td class="w">11-nines durability, unlimited capacity, pay-per-object.</td></tr>
+            <tr><td class="t">Presigned URLs</td><td class="w">Temporary, scoped credentials — direct transfer without exposing the bucket.</td></tr>
+            <tr><td class="t">Multipart upload</td><td class="w">Parallel, resumable chunked uploads for GB-scale files.</td></tr>
+            <tr><td class="t">CloudFront (CDN)</td><td class="w">Geographic edge caching for downloads.</td></tr>
+          </table>
+        </div>
+        <div class="block">
+          <h3>Deep dives to expect</h3>
+          <ul class="dives">
+            <li><b>Failure at 99%</b> — multipart means only the failed chunk retries; track uploaded chunks to resume.</li>
+            <li><b>Metadata sync</b> — the database says a file exists but the upload never finished; reconcile with S3 events plus a sweeper for stale <code>uploading</code> rows.</li>
+            <li><b>Abuse</b> — short URL expiry, content-length limits, per-user quotas, virus scanning post-upload.</li>
+            <li><b>Speed</b> — parallel chunks on upload, CDN + range requests on download.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="block">
+        <h3>Seen in</h3>
+        <div class="chips"><span>YouTube</span><span>Dropbox / Google Drive</span><span>Instagram</span><span>Photo sharing</span></div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ============ PROXIMITY ============ -->
+  <details class="pattern" id="proximity">
+    <summary>
+      <span class="dot motion"></span><span class="name">Proximity-Based Search</span><span class="chev">▶</span>
+      <span class="tag">"Find things near me" — normal indexes can't answer two-dimensional questions.</span>
+    </summary>
+    <div class="pattern-body">
+      <div class="block">
+        <h3>Spot it when</h3>
+        <ul class="spot">
+          <li>Drivers near a rider, restaurants near a user, posts near a location.</li>
+          <li>Core insight to state: a B-tree sorts in one dimension, so an index on latitude gives you a horizontal strip of the whole world — 2D closeness can't be preserved in a 1D sort. That's why naive lat/long indexes force full scans.</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Choose by data shape</h3>
+        <ol class="ladder">
+          <li><b>Small dataset? Skip the index.</b> Under ~100K items, scan candidates and filter by distance. Only reach for geospatial indexing at real scale.</li>
+          <li><b>Moving points (drivers, users) → encoded cells.</b> Geohash converts lat/long into a sortable string, so a regular B-tree works; updates are cheap single-value writes. Query the cell plus its 8 neighbors (the "3×3 trick") to handle boundary edge cases.</li>
+          <li><b>Shapes (zones, roads, polygons) → spatial trees.</b> R-trees (PostGIS) index bounding rectangles and handle containment/intersection. Writes are pricier due to rebalancing — fine, because shapes rarely move.</li>
+          <li><b>Always post-filter.</b> The index only produces a candidate set; finish with exact distance math. Skipping this step is the classic mistake.</li>
+        </ol>
+      </div>
+      <div class="cols">
+        <div class="block">
+          <h3>Tech to name &amp; why</h3>
+          <table class="tech">
+            <tr><td class="t">PostGIS</td><td class="w">R-tree indexes on Postgres; the answer when geometry (polygons, zones) matters.</td></tr>
+            <tr><td class="t">Redis GEO</td><td class="w">Geohash on sorted sets; fast candidate sets for live driver locations.</td></tr>
+            <tr><td class="t">Elasticsearch geo</td><td class="w">BKD-tree geo fields; combine location with text/filter search.</td></tr>
+            <tr><td class="t">Google S2</td><td class="w">Spherical cells, globally uniform size; powers MongoDB's 2dsphere.</td></tr>
+            <tr><td class="t">Uber H3</td><td class="w">Hexagonal cells — six equidistant neighbors; great for rings and heat maps.</td></tr>
+          </table>
+        </div>
+        <div class="block">
+          <h3>Deep dives to expect</h3>
+          <ul class="dives">
+            <li><b>Cell boundaries</b> — two points meters apart can land in different geohash cells; that's what the 3×3 neighbor query fixes.</li>
+            <li><b>High-frequency updates</b> — drivers move constantly; encoded cells win because an update is one integer write.</li>
+            <li><b>Precision picking</b> — 5-char geohash ≈ 5 km, 9-char ≈ 5 m; match cell size to query radius.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout"><b>Rule of thumb:</b> spatial trees for shapes, encoded cells for moving points — and always, always post-filter by exact distance.</div>
+      <div class="block">
+        <h3>Seen in</h3>
+        <div class="chips"><span>Uber / Lyft</span><span>Yelp</span><span>DoorDash</span><span>Tinder</span><span>Find my friends</span></div>
+      </div>
+    </div>
+  </details>
+
+  <h2 class="rail" id="combine">Patterns combine — expect two or three per problem</h2>
+  <div class="combine">
+    <p>Real interview questions are compositions. "Design YouTube" is one problem but four patterns working together:</p>
+    <div class="flow">
+      <span class="step">Large Files<small>upload via presigned URLs</small></span><span class="arr">→</span>
+      <span class="step">Long-Running Tasks<small>transcode on workers</small></span><span class="arr">→</span>
+      <span class="step">Realtime Updates<small>push progress to uploader</small></span><span class="arr">→</span>
+      <span class="step">Multi-Step Processes<small>orchestrate the whole flow</small></span>
+    </div>
+    <p style="margin-top:12px">Likewise "Design Uber" = Proximity Search (matching) + Realtime Updates (tracking) + Multi-Step Processes (trip lifecycle), and "Design Ticketmaster" = Contention (seat booking) + Scaling Reads (event browsing) + Realtime Updates (seat maps). Name the patterns early — it shows the interviewer you have a map, not a memorized answer.</p>
+  </div>
+
+  <h2 class="rail" id="failure">Design for failure — raise it before they ask</h2>
+  <p class="section-lede">Distributed systems fail partially and constantly. Naming the failure modes and your recovery story <em>unprompted</em> is what separates a senior answer from a hopeful one.</p>
+  <div class="combine">
+    <p><b>Fanout — push vs pull</b> decides where you pay the cost of delivering one event to many watchers.</p>
+    <div class="flow">
+      <span class="step">Push · fan-out-on-write<small>precompute per recipient at write time</small></span>
+      <span class="arr">vs</span>
+      <span class="step">Pull · fan-out-on-read<small>assemble the view at read time</small></span>
+    </div>
+    <p style="margin-top:12px"><b>Push</b> gives fast reads, but a celebrity with 100M followers makes one write explode. <b>Pull</b> gives cheap writes, but every read redoes the work. <b>Hybrid</b> is the senior answer — push for normal accounts, pull for high-fanout ones, and merge at read time.</p>
+  </div>
+  <div class="table-scroll" style="margin-top:16px">
+    <table class="match">
+      <thead><tr><th>The problem to raise…</th><th>How you handle it</th><th>Name-drop</th></tr></thead>
+      <tbody>
+        <tr><td class="lbl">Timeouts</td><td class="desc">Put a deadline on every network call, set below the caller's own budget so failures surface fast instead of hanging.</td><td><code>context deadlines</code></td></tr>
+        <tr><td class="lbl">Retries</td><td class="desc">Exponential backoff with jitter and a capped attempt count — only for transient errors, never for logic bugs.</td><td><code>backoff</code> <code>jitter</code></td></tr>
+        <tr><td class="lbl">Duplicate work</td><td class="desc">At-least-once delivery means retries can double-apply; idempotency keys make a repeated request a no-op.</td><td><code>idempotency key</code></td></tr>
+        <tr><td class="lbl">Cascading failure</td><td class="desc">One slow dependency ties up every thread; a circuit breaker trips open and fails fast until it recovers.</td><td><code>circuit breaker</code> <code>bulkhead</code></td></tr>
+        <tr><td class="lbl">Overload</td><td class="desc">A queue absorbs bursts; when it overflows, shed low-value work rather than topple the whole system.</td><td><code>backpressure</code> <code>load shedding</code></td></tr>
+        <tr><td class="lbl">Node / zone loss</td><td class="desc">Redundant replicas across availability zones, health checks, and automatic failover with leader promotion.</td><td><code>multi-AZ</code> <code>leader election</code></td></tr>
+        <tr><td class="lbl">Poison messages</td><td class="desc">After N failed retries, park the job in a dead-letter queue for inspection instead of blocking the pipeline.</td><td><code>DLQ</code></td></tr>
+        <tr><td class="lbl">Partial failure</td><td class="desc">Degrade gracefully — serve stale cache or a reduced view over a hard error, then reconcile afterward.</td><td><code>graceful degradation</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="rail" id="security">Securing the system</h2>
+  <p class="section-lede">Security is a concern at every tier, not a bolt-on at the end. Touch these even briefly and you signal production maturity.</p>
+  <div class="table-scroll">
+    <table class="match">
+      <thead><tr><th>Layer</th><th>What to do</th><th>Name-drop</th></tr></thead>
+      <tbody>
+        <tr><td class="lbl">Authentication</td><td class="desc">Verify identity with short-lived tokens plus refresh; delegate third-party sign-in rather than storing passwords.</td><td><code>JWT</code> <code>OAuth 2.0</code> <code>OIDC</code></td></tr>
+        <tr><td class="lbl">Authorization</td><td class="desc">Check permissions on every request and default to least privilege — never trust the client's claim of its role.</td><td><code>RBAC</code> <code>ABAC</code> <code>scopes</code></td></tr>
+        <tr><td class="lbl">Encryption</td><td class="desc">TLS in transit and AES-256 at rest; terminate TLS at the edge and encrypt backups too.</td><td><code>TLS 1.3</code> <code>at-rest</code></td></tr>
+        <tr><td class="lbl">Secrets</td><td class="desc">No credentials in code; rotate through a secrets manager and scope each service identity tightly.</td><td><code>Vault</code> <code>KMS</code> <code>IAM</code></td></tr>
+        <tr><td class="lbl">Input handling</td><td class="desc">Validate and parameterize every input; never build queries or markup by string concatenation.</td><td><code>SQLi</code> <code>XSS</code> <code>param queries</code></td></tr>
+        <tr><td class="lbl">Abuse control</td><td class="desc">Rate-limit per user, IP, and key to blunt scraping and brute force and to protect downstream services.</td><td><code>token bucket</code> <code>throttling</code></td></tr>
+        <tr><td class="lbl">Edge defense</td><td class="desc">Absorb volumetric attacks at the edge before they ever reach your origin.</td><td><code>CDN</code> <code>WAF</code> <code>DDoS</code></td></tr>
+        <tr><td class="lbl">Data &amp; privacy</td><td class="desc">Encrypt or tokenize PII, minimize what you store, and keep an audit trail of who accessed what.</td><td><code>PII</code> <code>GDPR</code> <code>audit logs</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="rail" id="closing">Robust &amp; future-proof — the closing checklist</h2>
+  <p class="section-lede">Before you wrap, sweep these to show the design survives growth to millions of users, not just today's load.</p>
+  <div class="rules">
+    <div class="rule"><b>Handle millions</b><span>Stateless tiers behind a load balancer, cached reads, sharded writes — no single node on the hot path.</span></div>
+    <div class="rule"><b>Measure first</b><span>Estimate QPS, storage, and bandwidth up front; let the numbers choose the technology, not the reverse.</span></div>
+    <div class="rule"><b>No SPOF</b><span>Every tier redundant across zones, with failover you've actually tested — not merely assumed.</span></div>
+    <div class="rule"><b>Loosely coupled</b><span>Queues and clear service boundaries so pieces scale, deploy, and fail independently.</span></div>
+    <div class="rule"><b>Observability</b><span>Metrics, structured logs, tracing, and alerts — you can't scale what you can't see.</span></div>
+    <div class="rule"><b>Design for change</b><span>Versioned APIs, backward-compatible migrations, and feature flags for safe, gradual rollout.</span></div>
+  </div>
+
+  <footer>
+    Condensed from <a href="https://www.hellointerview.com/learn/system-design/in-a-hurry/patterns" target="_blank" rel="noopener">Hello Interview's System Design in a Hurry — Patterns</a> (with per-pattern pages). Some source detail sits behind their premium tier; gaps here are filled with standard industry practice. For interview prep, the original write-ups are worth reading in full.
+  </footer>
+</div>
+
+<script>
+  const patterns = Array.from(document.querySelectorAll("details.pattern"));
+
+  document.getElementById("expand-all").addEventListener("click", () => {
+    patterns.forEach(d => d.open = true);
+  });
+  document.getElementById("collapse-all").addEventListener("click", () => {
+    patterns.forEach(d => d.open = false);
+  });
+
+  // Open the target pattern when a jump link / hash is used
+  function openFromHash() {
+    const el = document.getElementById(location.hash.slice(1));
+    if (el && el.matches("details.pattern")) el.open = true;
+  }
+  window.addEventListener("hashchange", openFromHash);
+  openFromHash();
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener("click", () => {
+      const el = document.getElementById(a.getAttribute("href").slice(1));
+      if (el && el.matches("details.pattern")) el.open = true;
+    });
+  });
+
+  // Keyword filter: hide non-matching patterns, expand matches
+  const filter = document.getElementById("filter");
+  const noMatch = document.getElementById("no-match");
+  filter.addEventListener("input", () => {
+    const q = filter.value.trim().toLowerCase();
+    let shown = 0;
+    patterns.forEach(d => {
+      const hit = !q || d.textContent.toLowerCase().includes(q);
+      d.classList.toggle("hidden", !hit);
+      if (hit) shown++;
+      if (q && hit) d.open = true;
+      if (!q) d.open = false;
+    });
+    noMatch.style.display = shown ? "none" : "block";
+  });
+</script>
+
+
+</body>
+</html>
