@@ -11,6 +11,7 @@ single self-contained HTML page — served via GitHub Pages.
 | --- | --- | --- |
 | **System Design Patterns** | 8 recurring interview patterns, plus fundamentals (data flow, scalability, fault tolerance, CAP), a failure-mode playbook, security layers, and a scale checklist | [view](https://paulhundal530.github.io/cheatsheets/system-design.html) · [`system-design.html`](system-design.html) |
 | **Graph Algorithms** | Representations, BFS/DFS, Dijkstra, A*, complexity tables, a problem-pattern matcher, grid problems, topo sort & union-find (Kotlin) | [view](https://paulhundal530.github.io/cheatsheets/graph-algorithms.html) · [`graph-algorithms.html`](graph-algorithms.html) |
+| **Android & Kotlin** | Kotlin language & interop, coroutines, components & lifecycle, ViewModel/rotation, FCM push, diagnosing concurrency bugs & UI jank, plus interview extras | [view](https://paulhundal530.github.io/cheatsheets/android.html) · [`android.html`](android.html) |
 
 ## Adding a new cheat sheet
 

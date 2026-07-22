@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Android &amp; Kotlin — Interview Cheat Sheet</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f5f9;
+    --surface: #ffffff;
+    --surface-2: #eeecf4;
+    --ink: #1a1725;
+    --muted: #5f5a70;
+    --faint: #857f96;
+    --line: #e2def0;
+    --line-strong: #cdc7e0;
+    --accent: #7c3aed;
+    --accent-ink: #6d28d9;
+    --accent-soft: rgba(124, 58, 237, 0.10);
+    --good: #2f9e44;
+    --warn: #c67617;
+    --bad: #dc2f37;
+    --code-bg: #171326;
+    --code-ink: #dcd7ea;
+    --k: #c4a7ff;   /* keyword    */
+    --t: #7fd7c4;   /* type       */
+    --s: #f0b47a;   /* string     */
+    --n: #f2a3c7;   /* number     */
+    --a: #f6c667;   /* annotation */
+    --c: #7d7793;   /* comment    */
+    --shadow: 0 1px 2px rgba(26,23,37,.05), 0 10px 30px -16px rgba(26,23,37,.22);
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e0b16; --surface: #17131f; --surface-2: #120e1b;
+      --ink: #ece8f6; --muted: #a49cbb; --faint: #7f7893;
+      --line: #292139; --line-strong: #362c4b;
+      --accent: #a78bfa; --accent-ink: #c4b5fd; --accent-soft: rgba(167,139,250,.14);
+      --good: #4ade80; --warn: #fbbf24; --bad: #f87171;
+      --code-bg: #0b0813; --code-ink: #d6d0e6;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 14px 34px -18px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f6f5f9; --surface: #ffffff; --surface-2: #eeecf4; --ink: #1a1725;
+    --muted: #5f5a70; --faint: #857f96; --line: #e2def0; --line-strong: #cdc7e0;
+    --accent: #7c3aed; --accent-ink: #6d28d9; --accent-soft: rgba(124,58,237,.10);
+    --good: #2f9e44; --warn: #c67617; --bad: #dc2f37;
+    --code-bg: #171326; --code-ink: #dcd7ea;
+    --shadow: 0 1px 2px rgba(26,23,37,.05), 0 10px 30px -16px rgba(26,23,37,.22);
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e0b16; --surface: #17131f; --surface-2: #120e1b; --ink: #ece8f6;
+    --muted: #a49cbb; --faint: #7f7893; --line: #292139; --line-strong: #362c4b;
+    --accent: #a78bfa; --accent-ink: #c4b5fd; --accent-soft: rgba(167,139,250,.14);
+    --good: #4ade80; --warn: #fbbf24; --bad: #f87171;
+    --code-bg: #0b0813; --code-ink: #d6d0e6;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 14px 34px -18px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--accent-ink); margin: 0 0 10px;
+  }
+  a.home {
+    display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+    padding: 16px 0 0;
+  }
+  a.home:hover { color: var(--accent-ink); }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative; overflow: hidden; border-bottom: 1px solid var(--line);
+    background:
+      radial-gradient(1px 1px at center, var(--line-strong) 1px, transparent 1px) 0 0 / 26px 26px,
+      var(--surface-2);
+  }
+  .hero .wrap { padding: 42px 24px 54px; }
+  .hero h1 {
+    font-size: clamp(2.1rem, 4.8vw, 3.3rem); line-height: 1.04; letter-spacing: -.025em;
+    margin: 0 0 16px; text-wrap: balance;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p.lede { font-size: 1.07rem; color: var(--muted); margin: 0 0 24px; max-width: 60ch; }
+  .metaline { display: flex; flex-wrap: wrap; gap: 8px; font-family: var(--mono); font-size: 12px; }
+  .metaline span {
+    border: 1px solid var(--line-strong); border-radius: 999px; padding: 4px 11px;
+    color: var(--muted); background: var(--surface);
+  }
+
+  /* ---------- Sticky nav ---------- */
+  nav.toc {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+  }
+  nav.toc .wrap { display: flex; gap: 4px; overflow-x: auto; padding: 10px 24px; scrollbar-width: none; }
+  nav.toc .wrap::-webkit-scrollbar { display: none; }
+  nav.toc a {
+    flex: 0 0 auto; font-family: var(--mono); font-size: 12.5px; text-decoration: none;
+    color: var(--muted); padding: 6px 12px; border-radius: 8px; white-space: nowrap;
+  }
+  nav.toc a:hover { color: var(--ink); background: var(--surface-2); }
+
+  /* ---------- Sections ---------- */
+  section { padding: 54px 0 8px; scroll-margin-top: 60px; }
+  .sec-head { margin-bottom: 24px; }
+  .sec-head h2 { font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -.015em; margin: 0 0 8px; text-wrap: balance; }
+  .sec-head p { color: var(--muted); margin: 0; max-width: 72ch; }
+
+  .grid { display: grid; gap: 18px; }
+  .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+  .qa {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 22px; box-shadow: var(--shadow);
+  }
+  .qa h3 { margin: 0 0 10px; font-size: 1.1rem; letter-spacing: -.01em; line-height: 1.35; }
+  .qa h3 .qn { font-family: var(--mono); color: var(--accent); font-weight: 700; margin-right: 8px; }
+  .qa p { margin: 0 0 11px; font-size: .96rem; }
+  .qa p:last-child { margin-bottom: 0; }
+  .qa ul.tick { list-style: none; padding: 0; margin: 0 0 11px; display: grid; gap: 6px; }
+  .qa ul.tick li { position: relative; padding-left: 22px; font-size: .94rem; }
+  .qa ul.tick li::before {
+    content: ""; position: absolute; left: 4px; top: .62em;
+    width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  }
+  .qa ul.tick.con li::before { background: var(--bad); }
+  .qa ul.tick .lbl, .qa .lbl {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .05em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  .cx {
+    display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono);
+    font-size: 12.5px; font-weight: 600; padding: 3px 9px; border-radius: 7px;
+    border: 1px solid var(--line-strong); background: var(--surface-2);
+  }
+  .cx b { font-weight: 500; color: var(--muted); font-size: 11px; }
+  .cx.good { color: var(--good); border-color: color-mix(in srgb, var(--good) 45%, var(--line)); }
+  .cx.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+  .cx.bad  { color: var(--bad);  border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); }
+  .cx-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+
+  pre {
+    margin: 13px 0 0; background: var(--code-bg); border: 1px solid #251d3a;
+    border-radius: 10px; padding: 15px 16px; overflow-x: auto;
+    font-family: var(--mono); font-size: 12.8px; line-height: 1.6; color: var(--code-ink); tab-size: 4;
+  }
+  pre code { font-family: inherit; white-space: pre; }
+  .tok-k { color: var(--k); } .tok-t { color: var(--t); } .tok-s { color: var(--s); }
+  .tok-n { color: var(--n); } .tok-a { color: var(--a); } .tok-c { color: var(--c); font-style: italic; }
+
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--surface); }
+  th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: .94rem; }
+  thead th {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); background: var(--surface-2);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td code, th code, p code, li code {
+    font-family: var(--mono); font-size: .85em; background: var(--surface-2);
+    padding: 1.5px 5px; border-radius: 5px; border: 1px solid var(--line);
+  }
+  .cue { font-weight: 650; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--accent-soft);
+    padding: 11px 15px; border-radius: 0 10px 10px 0; margin: 13px 0 0; font-size: .93rem;
+  }
+  .callout .lbl {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--accent-ink); font-weight: 700;
+  }
+
+  footer {
+    margin-top: 60px; border-top: 1px solid var(--line);
+    padding: 26px 0 60px; color: var(--faint); font-size: .87rem;
+  }
+  footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  footer .mono { font-family: var(--mono); font-size: 12px; }
+  footer a { color: var(--accent-ink); }
+  a.anchor { color: inherit; text-decoration: none; }
+
+  @media (max-width: 900px) {
+    .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <a class="home" href="index.html">&larr; all cheatsheets</a>
+    <p class="eyebrow" style="margin-top:20px">Android · Kotlin · Interview</p>
+    <h1>Android &amp; Kotlin,<br><span>interview-ready.</span></h1>
+    <p class="lede">The language quirks, coroutine rules, lifecycle gotchas, and framework internals that product-company interviewers actually probe — each answered in a couple of lines you can say out loud.</p>
+    <div class="metaline">
+      <span>Kotlin</span><span>Coroutines</span><span>Lifecycle</span><span>Jetpack</span><span>30+ Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#kotlin">Kotlin Language</a>
+    <a href="#interop">JVM Interop</a>
+    <a href="#coroutines">Coroutines</a>
+    <a href="#lifecycle">Components &amp; Lifecycle</a>
+    <a href="#system">System Internals</a>
+    <a href="#networking">Networking</a>
+    <a href="#diagnostics">Diagnosing &amp; Perf</a>
+    <a href="#bonus">More Worth Knowing</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- ============ KOTLIN LANGUAGE ============ -->
+  <section id="kotlin">
+    <div class="sec-head">
+      <p class="eyebrow">01 — Language</p>
+      <h2><a class="anchor" href="#kotlin">Kotlin language essentials</a></h2>
+      <p>The keyword-level questions. Know the <em>why</em>, not just the definition — that's what separates a rehearsed answer from an understood one.</p>
+    </div>
+
+    <div class="grid cols-2">
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>What is an <code>inline</code> function?</h3>
+        <p>The compiler copies the function's body — <em>and the bodies of its lambda arguments</em> — directly into each call site instead of generating a function object per lambda.</p>
+        <ul class="tick">
+          <li>Removes the per-lambda allocation and virtual-call overhead of higher-order functions</li>
+          <li>Enables <b>non-local returns</b> from a lambda and is required for <code>reified</code> type params</li>
+        </ul>
+        <ul class="tick con">
+          <li>Bloats bytecode if the function is large or called in many places — reserve it for small higher-order functions</li>
+        </ul>
+        <p><span class="lbl">Modifiers:</span> <code>noinline</code> excludes one lambda param; <code>crossinline</code> keeps the lambda inlined but forbids non-local returns.</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>What is the <code>reified</code> keyword?</h3>
+        <p>Inside an <code>inline</code> function, <code>reified T</code> keeps the type argument available at runtime, defeating JVM type erasure. You can then use <code>T::class</code>, <code>is&nbsp;T</code>, and <code>as&nbsp;T</code> without passing a <code>Class&lt;T&gt;</code>.</p>
+        <pre><code>inline fun &lt;reified T&gt; Gson.fromJson(json: String): T =
+    fromJson(json, T::class.java)
+
+val user: User = gson.fromJson(body)  // no User::class arg</code></pre>
+        <p><span class="lbl">Catch:</span> only works because the body is inlined — <code>reified</code> requires <code>inline</code>.</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>Advantage of <code>const</code>?</h3>
+        <p><code>const val</code> is a <b>compile-time constant</b>: its value is inlined into the bytecode at every use site, with no backing field or getter.</p>
+        <ul class="tick">
+          <li>Faster (no accessor call) and usable in annotations and <code>when</code> labels, where a plain <code>val</code> can't go</li>
+          <li>Restricted to top-level or <code>object</code>/<code>companion</code> members, and only primitives or <code>String</code></li>
+        </ul>
+        <p><span class="lbl">vs val:</span> a plain <code>val</code> is assigned at runtime and read through a generated getter.</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span><code>lateinit</code> vs <code>lazy</code>?</h3>
+        <div class="tablewrap" style="box-shadow:none">
+          <table style="min-width:0">
+            <thead><tr><th></th><th><code>lateinit</code></th><th><code>lazy</code></th></tr></thead>
+            <tbody>
+              <tr><td class="cue">Mutability</td><td><code>var</code></td><td><code>val</code></td></tr>
+              <tr><td class="cue">Init</td><td>You assign later</td><td>Computed on first read, then cached</td></tr>
+              <tr><td class="cue">Thread-safe</td><td>No</td><td>Yes (by default)</td></tr>
+              <tr><td class="cue">Types</td><td>Non-null, non-primitive</td><td>Any</td></tr>
+              <tr><td class="cue">Use for</td><td>DI / framework-set fields</td><td>Expensive read-only values</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Accessing <code>lateinit</code> before assignment throws <code>UninitializedPropertyAccessException</code>; guard with <code>::field.isInitialized</code>.</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span><code>==</code> vs <code>===</code>?</h3>
+        <ul class="tick">
+          <li><code>==</code> — <b>structural</b> equality; calls <code>equals()</code> (with a null check). "Do these hold the same value?"</li>
+          <li><code>===</code> — <b>referential</b> equality; same object identity on the heap. "Are these the exact same instance?"</li>
+        </ul>
+        <p>Java's <code>==</code> is Kotlin's <code>===</code>; Java's <code>.equals()</code> is Kotlin's <code>==</code>.</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>What does <code>open</code> do?</h3>
+        <p>Kotlin classes and members are <b>final by default</b>. <code>open</code> opts a class in to being subclassed, or a member in to being overridden.</p>
+        <p>It's the inverse of Java, where everything is open unless marked <code>final</code>. The default nudges you toward composition and stable APIs.</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>The <code>internal</code> visibility modifier?</h3>
+        <p>Visible everywhere within the same <b>module</b> — one compilation unit (a Gradle module, Maven project, IntelliJ module).</p>
+        <p>Broader than <code>private</code>/<code>protected</code>, narrower than <code>public</code>. Perfect for library code you share across your own module but don't want to leak as public API.</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>The <code>init</code> block?</h3>
+        <p>Initializer code that runs as part of the <b>primary constructor</b>. Multiple <code>init</code> blocks and property initializers execute top-to-bottom in declaration order.</p>
+        <pre><code>class User(name: String) {
+    val slug: String
+    init {
+        require(name.isNotBlank())   // validate during construction
+        slug = name.lowercase().trim()
+    }
+}</code></pre>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ JVM INTEROP ============ -->
+  <section id="interop">
+    <div class="sec-head">
+      <p class="eyebrow">02 — Interop</p>
+      <h2><a class="anchor" href="#interop">Kotlin ↔ JVM interop annotations</a></h2>
+      <p>These exist so <b>Java</b> callers see idiomatic Java. If your code is only ever called from Kotlin, you rarely need them — that framing is the answer interviewers want.</p>
+    </div>
+
+    <div class="grid cols-3">
+      <div class="qa">
+        <h3><span class="qn">Q</span><code>@JvmStatic</code></h3>
+        <p>On a <code>companion object</code> or <code>object</code> member, emits a genuine <b>static</b> method/field on the enclosing class.</p>
+        <p>Java can call <code>Foo.bar()</code> instead of <code>Foo.Companion.bar()</code>.</p>
+      </div>
+      <div class="qa">
+        <h3><span class="qn">Q</span><code>@JvmField</code></h3>
+        <p>Exposes a property as a plain <b>public field</b> — no getter/setter generated.</p>
+        <p>For interop (and micro-optimizations). Incompatible with <code>open</code>, <code>override</code>, <code>const</code>, and private.</p>
+      </div>
+      <div class="qa">
+        <h3><span class="qn">Q</span><code>@JvmOverloads</code></h3>
+        <p>Java doesn't understand default arguments. This generates one <b>overload per default parameter</b> so Java can omit them.</p>
+        <pre><code>@JvmOverloads
+fun greet(name: String, loud: Boolean = false) {}
+// Java sees: greet(name) and greet(name, loud)</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COROUTINES ============ -->
+  <section id="coroutines">
+    <div class="sec-head">
+      <p class="eyebrow">03 — Concurrency</p>
+      <h2><a class="anchor" href="#coroutines">Kotlin coroutines</a></h2>
+      <p>Coroutines are about <em>not blocking threads</em>. Every question here comes back to that idea.</p>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="qa">
+        <h3><span class="qn">Q</span>Suspending vs blocking?</h3>
+        <ul class="tick">
+          <li><b>Blocking</b> — the thread is parked and can do nothing else until the call returns. One thread held hostage.</li>
+          <li><b>Suspending</b> — a <code>suspend</code> function can pause its coroutine and <b>release the thread</b> back to the pool, resuming later on any thread.</li>
+        </ul>
+        <p>So thousands of suspended coroutines can share a handful of threads; thousands of blocking calls need thousands of threads.</p>
+        <div class="callout"><span class="lbl">Say it</span> &nbsp;Suspension is cooperative and cheap; blocking wastes a whole thread. <code>delay()</code> suspends, <code>Thread.sleep()</code> blocks.</div>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span><code>launch</code> vs <code>async</code>?</h3>
+        <ul class="tick">
+          <li><code>launch</code> → returns a <code>Job</code>. Fire-and-forget, <b>no result</b>. For side effects.</li>
+          <li><code>async</code> → returns a <code>Deferred&lt;T&gt;</code>. A promise of a value you <code>await()</code>. For concurrent work that produces results.</li>
+        </ul>
+        <pre><code>val user  = async { api.user() }
+val posts = async { api.posts() }
+render(user.await(), posts.await())  // run in parallel</code></pre>
+        <p><span class="lbl">Exceptions:</span> <code>launch</code> throws into the parent immediately; <code>async</code> holds the exception until you <code>await()</code>.</p>
+      </div>
+
+      <div class="qa" style="grid-column:1 / -1">
+        <h3><span class="qn">Q</span>Common concurrency bugs — and how to diagnose them</h3>
+        <div class="grid cols-2" style="gap:0 28px">
+          <div>
+            <p class="lbl" style="margin-bottom:6px">Frequent culprits</p>
+            <ul class="tick con">
+              <li><b>Main-thread blocking</b> — network/DB/JSON on <code>Dispatchers.Main</code> → ANR &amp; jank</li>
+              <li><b>Races</b> on shared mutable state — two coroutines mutating the same <code>var</code></li>
+              <li><b>Leaked coroutines</b> from <code>GlobalScope</code> or no structured scope — they outlive the screen</li>
+              <li><b>Ignored cancellation</b> — a CPU loop that never checks <code>isActive</code></li>
+              <li><b>Swallowed exceptions</b> — an <code>async</code> result that's never <code>await()</code>ed</li>
+            </ul>
+          </div>
+          <div>
+            <p class="lbl" style="margin-bottom:6px">How to diagnose</p>
+            <ul class="tick">
+              <li><code>StrictMode</code> catches disk/network on the main thread the instant it happens</li>
+              <li>Log <code>Thread.currentThread().name</code>; enable coroutine <b>debug mode</b> for named stacktraces</li>
+              <li>CPU Profiler thread timeline; read <b>ANR traces</b> (Play Console or <code>/data/anr</code>)</li>
+              <li>LeakCanary for leaked jobs; <code>runTest</code> + a test dispatcher for deterministic ordering</li>
+            </ul>
+          </div>
+        </div>
+        <p style="margin-top:4px"><span class="lbl">Fixes</span> Right dispatcher (<code>IO</code> for blocking, <code>Default</code> for CPU); confine mutable state and guard it with a <code>Mutex</code> or atomics; prefer immutable data + <code>StateFlow</code>; lean on structured concurrency so cancellation propagates automatically.</p>
+        <pre><code>class Counter {
+    private val mutex = Mutex()
+    private var count = 0
+    suspend fun inc() = mutex.withLock { count++ }   // no races
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LIFECYCLE ============ -->
+  <section id="lifecycle">
+    <div class="sec-head">
+      <p class="eyebrow">04 — Framework</p>
+      <h2><a class="anchor" href="#lifecycle">Components &amp; lifecycle</a></h2>
+      <p>Where "I memorized the diagram" meets "I understand why the callback fires." The gotchas below are the ones that get asked.</p>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="qa">
+        <h3><span class="qn">Q</span>What is a <code>ViewModel</code> and why use it?</h3>
+        <p>A lifecycle-aware holder for UI state and logic that <b>survives configuration changes</b> (rotation, locale) — it isn't recreated when its Activity/Fragment is.</p>
+        <ul class="tick">
+          <li>Separates UI from business logic (the VM in MVVM); pairs with <code>StateFlow</code>/<code>LiveData</code></li>
+          <li>Scoped to a lifecycle owner; cleared in <code>onCleared()</code> when that owner is gone for good</li>
+        </ul>
+        <ul class="tick con">
+          <li>Never hold a <code>View</code> or Activity <code>Context</code> — that leaks. Use <code>AndroidViewModel</code> for app context.</li>
+        </ul>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>Why call <code>setContentView()</code> in <code>onCreate()</code>?</h3>
+        <p><code>onCreate()</code> is the <b>one-time</b> init callback — it runs once per Activity instance, before the activity is visible. That's the moment to inflate the layout and attach the view tree to the window.</p>
+        <p>Putting it in <code>onStart()</code>/<code>onResume()</code> would re-inflate the whole hierarchy on every return to the foreground — wasteful and state-destroying.</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>Why use only the <b>default constructor</b> for a Fragment?</h3>
+        <p>The system <b>recreates fragments by reflection</b> using the no-arg constructor (after a config change or process death). A custom constructor is never called on recreation, so its arguments are lost — often crashing with an <code>InstantiationException</code>.</p>
+        <div class="callout"><span class="lbl">Do this instead</span> &nbsp;Pass data via a <code>Bundle</code> in a <code>newInstance()</code> factory + <code>setArguments()</code>; it's restored automatically on recreation.</div>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>When is only <code>onDestroy()</code> called — no <code>onPause()</code>/<code>onStop()</code>?</h3>
+        <p>When you call <code>finish()</code> inside <code>onCreate()</code> (or before the activity ever becomes visible). It never reaches the started/resumed state, so the system goes straight <code>onCreate() → onDestroy()</code>, skipping pause and stop.</p>
+        <p>(A system process-kill can also destroy an activity without guaranteed callbacks — but the deterministic case is <code>finish()</code> in <code>onCreate()</code>.)</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span><code>singleTask</code> launch mode?</h3>
+        <p>The activity has <b>at most one instance</b>, living at the root of its task. A new intent for it reuses that instance — routing through <code>onNewIntent()</code> — and <b>clears any activities above it</b>.</p>
+        <p><span class="lbl">The four modes:</span> <code>standard</code> (new instance each time), <code>singleTop</code> (reuse only if already on top), <code>singleTask</code> (one per task, clear-to-top), <code>singleInstance</code> (alone in its own task).</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>The Activity lifecycle, in order?</h3>
+        <p><code>onCreate → onStart → onResume</code> (now interactive) <code>→ onPause → onStop → onDestroy</code>. Returning from stopped fires <code>onRestart → onStart</code>.</p>
+        <ul class="tick">
+          <li><b>onStart/onStop</b> bracket visibility; <b>onResume/onPause</b> bracket foreground focus</li>
+          <li>Persist state in <code>onSaveInstanceState</code> / release resources in <code>onStop</code></li>
+        </ul>
+      </div>
+
+      <div class="qa" style="grid-column:1 / -1">
+        <h3><span class="qn">Q</span>How is a ViewModel <em>lifecycle-aware</em>?</h3>
+        <p>It doesn't listen to lifecycle callbacks itself — it's <b>scoped</b> to a lifecycle owner and knows the difference between a temporary teardown and a permanent one.</p>
+        <ul class="tick">
+          <li>An Activity/Fragment is a <code>ViewModelStoreOwner</code> holding a <code>ViewModelStore</code> — a map of its ViewModels.</li>
+          <li>On a configuration change the framework <b>retains that store</b> and hands it to the new Activity instance, so you get the <em>same</em> ViewModel back rather than a fresh one.</li>
+          <li><code>onCleared()</code> runs only when the owner is finishing for good (Activity <code>isFinishing</code>, Fragment permanently removed) — never on rotation.</li>
+          <li><code>viewModelScope</code> is a <code>CoroutineScope</code> cancelled in <code>onCleared()</code>, so its coroutines stop at exactly the right moment.</li>
+        </ul>
+        <div class="callout"><span class="lbl">Limit</span> &nbsp;It survives rotation but <b>not process death</b> — for that, persist through a <code>SavedStateHandle</code>.</div>
+      </div>
+
+      <div class="qa" style="grid-column:1 / -1">
+        <h3><span class="qn">Q</span>How does Android handle device rotation?</h3>
+        <p>Rotation is a <b>configuration change</b>. By default the system destroys and recreates the Activity so it can load orientation-specific resources (<code>layout-land/</code>, <code>values-land/</code>): <code>onPause → onStop → onSaveInstanceState → onDestroy → onCreate → … → onRestoreInstanceState</code>.</p>
+        <p class="lbl" style="margin-bottom:6px">Three layers preserve your state across that recreation</p>
+        <ul class="tick">
+          <li><b>View state</b> — views with an <code>id</code> auto-save scroll position, text, and selection</li>
+          <li><b>onSaveInstanceState(Bundle)</b> — small, transient UI state; survives rotation <em>and</em> process death (keep it small &amp; Parcelable)</li>
+          <li><b>ViewModel</b> — in-memory state that's costly to rebuild; survives rotation (add <code>SavedStateHandle</code> to also survive process death)</li>
+        </ul>
+        <pre><code>override fun onSaveInstanceState(out: Bundle) {
+    super.onSaveInstanceState(out)
+    out.putInt("scrollY", scrollY)   // restored in onCreate / onRestoreInstanceState
+}</code></pre>
+        <p><span class="lbl">Opt out</span> Declaring <code>android:configChanges="orientation|screenSize"</code> makes the system call <code>onConfigurationChanged()</code> instead of recreating — use sparingly, since you then own every resource swap. In Compose, <code>rememberSaveable</code> restores state across rotation.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ SYSTEM INTERNALS ============ -->
+  <section id="system">
+    <div class="sec-head">
+      <p class="eyebrow">05 — Platform</p>
+      <h2><a class="anchor" href="#system">System internals</a></h2>
+      <p>How the platform actually delivers messages, packs your code, and manages memory.</p>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="qa" style="grid-column:1 / -1">
+        <h3><span class="qn">Q</span>How does the Android push-notification system work (FCM)?</h3>
+        <p>Every app's notifications ride a <b>single persistent socket</b> that Google Play Services keeps open to Google's servers — multiplexing all apps over one connection to save battery. The flow:</p>
+        <div class="tablewrap" style="margin-top:6px">
+          <table>
+            <thead><tr><th>Step</th><th>What happens</th></tr></thead>
+            <tbody>
+              <tr><td class="cue">1 · Register</td><td>App requests an FCM <b>registration token</b> (<code>FirebaseMessaging.getInstance().token</code>) — a unique address for this app install.</td></tr>
+              <tr><td class="cue">2 · Store</td><td>App sends that token to <b>your</b> backend and saves it. Handle rotation in <code>onNewToken()</code>.</td></tr>
+              <tr><td class="cue">3 · Send</td><td>Your server calls the <b>FCM HTTP v1 API</b>, targeting a token, a topic, or a device group.</td></tr>
+              <tr><td class="cue">4 · Deliver</td><td>FCM pushes down the persistent connection to the device (respecting Doze / priority).</td></tr>
+              <tr><td class="cue">5 · Handle</td><td>Your <code>FirebaseMessagingService.onMessageReceived()</code> runs; you build a <code>Notification</code> on a <code>NotificationChannel</code>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code>class MyFcmService : FirebaseMessagingService() {
+    override fun onNewToken(token: String) {
+        sendTokenToServer(token)
+    }
+    override fun onMessageReceived(msg: RemoteMessage) {
+        val n = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle(msg.data["title"])
+            .setContentText(msg.data["body"])
+            .setSmallIcon(R.drawable.ic_note)
+            .build()
+        NotificationManagerCompat.from(this).notify(1, n)
+    }
+}</code></pre>
+        <div class="callout"><span class="lbl">Two message types</span> &nbsp;<b>Notification</b> messages are auto-shown by the system tray when the app is backgrounded; <b>data</b> messages always land in <code>onMessageReceived()</code> for you to handle. Send data-only if you want full control.</div>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>What is Multidex?</h3>
+        <p>A single DEX file can reference at most <b>65,536 methods</b> (the "64K limit"). Multidex splits your app across multiple DEX files to get past it.</p>
+        <ul class="tick">
+          <li><b>API 21+ (ART):</b> multidex is native — handled at build time, nothing to do</li>
+          <li><b>API &lt; 21:</b> add the multidex library and use <code>MultiDexApplication</code></li>
+        </ul>
+        <p><span class="lbl">Better fix:</span> shrink method count with R8/ProGuard and fewer dependencies before reaching for it.</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>Can you force garbage collection?</h3>
+        <p>You can only <b>request</b> it — <code>System.gc()</code> / <code>Runtime.getRuntime().gc()</code> are hints the VM is free to ignore. There's no way to force a deterministic collection.</p>
+        <ul class="tick con">
+          <li>Discouraged in production: it can trigger a stop-the-world pause and hurts performance</li>
+        </ul>
+        <p>The real answer is to <b>fix leaks and reduce allocations</b> (LeakCanary, the Memory Profiler) rather than nudge the GC.</p>
+      </div>
+
+      <div class="qa" style="grid-column:1 / -1">
+        <h3><span class="qn">Q</span>How does Kotlin Multiplatform (KMP) work?</h3>
+        <p>Write your <b>business logic once</b> — networking, data, domain, use-cases — and share it across Android, iOS, desktop, web, and backend, while keeping each platform's <b>native UI</b>.</p>
+        <ul class="tick">
+          <li><code>commonMain</code> holds shared code; platform gaps are bridged with <code>expect</code> (declaration) / <code>actual</code> (per-platform implementation)</li>
+          <li>Compiles to JVM bytecode for Android, <b>native</b> binaries for iOS via Kotlin/Native, and JS/Wasm for web</li>
+          <li><b>Compose Multiplatform</b> can additionally share the UI layer when you want to</li>
+        </ul>
+        <p><span class="lbl">Why it wins:</span> one source of truth for logic (fewer bugs, less duplication) without giving up native performance or platform look-and-feel.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NETWORKING ============ -->
+  <section id="networking">
+    <div class="sec-head">
+      <p class="eyebrow">06 — Networking</p>
+      <h2><a class="anchor" href="#networking">Networking</a></h2>
+    </div>
+    <div class="qa">
+      <h3><span class="qn">Q</span>Retrofit vs OkHttp?</h3>
+      <p>They're layers, not rivals — <b>Retrofit is built on top of OkHttp</b> and uses it as its transport by default.</p>
+      <div class="tablewrap" style="margin-top:6px">
+        <table>
+          <thead><tr><th></th><th>OkHttp</th><th>Retrofit</th></tr></thead>
+          <tbody>
+            <tr><td class="cue">Layer</td><td>Low-level HTTP client</td><td>High-level type-safe REST wrapper</td></tr>
+            <tr><td class="cue">You work with</td><td>Raw <code>Request</code>/<code>Response</code>, interceptors</td><td>An annotated <code>interface</code> (<code>@GET</code>, <code>@POST</code>…)</td></tr>
+            <tr><td class="cue">Handles</td><td>Connections, pooling, caching, timeouts, retries, TLS</td><td>URL building, (de)serialization, <code>suspend</code>/<code>Call</code> return types</td></tr>
+            <tr><td class="cue">Reach for it when</td><td>You need fine-grained control or non-REST traffic</td><td>You're consuming a REST/JSON API (the common case)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout"><span class="lbl">In one line</span> &nbsp;OkHttp moves the bytes; Retrofit turns your API into a typed Kotlin interface and lets OkHttp move the bytes.</div>
+    </div>
+  </section>
+
+  <!-- ============ DIAGNOSING & PERFORMANCE ============ -->
+  <section id="diagnostics">
+    <div class="sec-head">
+      <p class="eyebrow">07 — Performance</p>
+      <h2><a class="anchor" href="#diagnostics">Diagnosing UI jank &amp; performance</a></h2>
+      <p>Smooth means hitting the frame budget: about <b>16&nbsp;ms</b> per frame at 60&nbsp;fps (~8&nbsp;ms at 120&nbsp;fps). Miss it and the user sees stutter, lag, or flicker — and the cause is almost always <b>too much work on the main thread</b>.</p>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="qa">
+        <h3><span class="qn">Q</span>What makes the UI jank?</h3>
+        <ul class="tick con">
+          <li>Blocking work on the main thread — I/O, DB queries, JSON parsing, bitmap decoding, big loops</li>
+          <li>Deep view hierarchies &amp; <b>overdraw</b> (stacked opaque backgrounds) → slow measure / layout / draw</li>
+          <li>Heavy <code>onBindViewHolder</code>, or <code>notifyDataSetChanged()</code> rebinding the whole list</li>
+          <li>Allocations inside <code>onDraw</code> / <code>onBindViewHolder</code> → GC pauses mid-scroll</li>
+          <li>Large, un-downsampled bitmaps; layout thrashing from repeated <code>requestLayout()</code></li>
+        </ul>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>Fixing scroll stutter &amp; flicker</h3>
+        <ul class="tick">
+          <li>Do all data prep off the main thread; bind <b>pre-computed</b> view state</li>
+          <li>Use <code>DiffUtil</code> / <code>ListAdapter</code> instead of <code>notifyDataSetChanged()</code> — updates only changed rows</li>
+          <li><code>setHasStableIds(true)</code> so recycled rows keep their identity — <b>this kills most flicker</b></li>
+          <li>Keep <code>onBindViewHolder</code> allocation-free; no inflation or I/O in there</li>
+          <li>Image lib (Coil/Glide) with downsampling, caching, and <b>cancel-on-recycle</b> — stops the wrong image flashing in</li>
+          <li>Big lists → <b>Paging 3</b>; add <code>setHasFixedSize(true)</code> and a shared <code>RecycledViewPool</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="qa" style="margin-top:18px">
+      <h3><span class="qn">Q</span>The diagnostic toolbox — what each tool shows</h3>
+      <div class="tablewrap" style="margin-top:4px">
+        <table>
+          <thead><tr><th>Tool</th><th>What it reveals</th></tr></thead>
+          <tbody>
+            <tr><td class="cue">Profile GPU / HWUI bars</td><td>Per-frame render time against the green 16&nbsp;ms line — spot dropped frames live (Developer Options).</td></tr>
+            <tr><td class="cue">Debug GPU Overdraw</td><td>Color overlay of how many times each pixel is painted — blue is fine, red is trouble.</td></tr>
+            <tr><td class="cue">Perfetto / systrace</td><td>Full frame timeline; classifies <b>which</b> frames janked and whether it's the UI or RenderThread.</td></tr>
+            <tr><td class="cue">Android Studio CPU Profiler</td><td>Method / system traces — pinpoints the expensive call sitting on the main thread.</td></tr>
+            <tr><td class="cue">Memory Profiler + LeakCanary</td><td>GC churn during a scroll, plus leaked activities/views that bloat memory.</td></tr>
+            <tr><td class="cue">Layout Inspector</td><td>Hierarchy depth and overdraw sources you can flatten.</td></tr>
+            <tr><td class="cue">JankStats / FrameMetrics · Macrobenchmark</td><td>Frame-timing metrics you can log in production or gate in CI.</td></tr>
+            <tr><td class="cue">StrictMode</td><td>Flags disk/network on the main thread the moment it occurs.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout"><span class="lbl">Method</span> &nbsp;Reproduce → confirm it's real jank with the GPU bars / Perfetto → find the main-thread culprit in the CPU profiler → move it off-thread or precompute → re-measure. Never optimize by guessing.</div>
+    </div>
+  </section>
+
+  <!-- ============ BONUS ============ -->
+  <section id="bonus">
+    <div class="sec-head">
+      <p class="eyebrow">08 — Rounding out</p>
+      <h2><a class="anchor" href="#bonus">More worth knowing</a></h2>
+      <p>High-frequency follow-ups that pair naturally with the questions above.</p>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="qa">
+        <h3><span class="qn">Q</span><code>data class</code> — what do you get?</h3>
+        <p>The compiler generates <code>equals()</code>/<code>hashCode()</code> (value-based), <code>toString()</code>, <code>copy()</code>, and <code>componentN()</code> for destructuring — all from the primary-constructor properties.</p>
+        <pre><code>data class User(val id: Int, val name: String)
+val u2 = u.copy(name = "Ada")
+val (id, name) = u2         // destructuring</code></pre>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span><code>sealed</code> class/interface vs <code>enum</code>?</h3>
+        <p>A sealed type has a <b>fixed, compiler-known set of subtypes</b> in the same module — but each subtype is a full class that can hold its own data and multiple instances.</p>
+        <ul class="tick">
+          <li>Makes <code>when</code> <b>exhaustive</b> with no <code>else</code> — add a case and the compiler flags every <code>when</code></li>
+          <li>Ideal for UI state: <code>Loading</code> / <code>Success(data)</code> / <code>Error(msg)</code></li>
+        </ul>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>Scope functions: <code>let / run / with / apply / also</code>?</h3>
+        <div class="tablewrap" style="box-shadow:none"><table style="min-width:0">
+          <thead><tr><th>Fn</th><th>Object is</th><th>Returns</th></tr></thead>
+          <tbody>
+            <tr><td><code>let</code></td><td><code>it</code></td><td>lambda result</td></tr>
+            <tr><td><code>run</code></td><td><code>this</code></td><td>lambda result</td></tr>
+            <tr><td><code>with</code></td><td><code>this</code></td><td>lambda result</td></tr>
+            <tr><td><code>apply</code></td><td><code>this</code></td><td>the object</td></tr>
+            <tr><td><code>also</code></td><td><code>it</code></td><td>the object</td></tr>
+          </tbody>
+        </table></div>
+        <p><code>apply</code> for configuring an object; <code>let</code> for null-safe transforms (<code>x?.let { }</code>).</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span><code>StateFlow</code> vs <code>LiveData</code>?</h3>
+        <ul class="tick">
+          <li><b>LiveData</b> — Android-only, lifecycle-aware out of the box, always has value on the main thread</li>
+          <li><b>StateFlow</b> — pure Kotlin (KMP-friendly), always has a value, richer operators; collect with <code>repeatOnLifecycle</code> to stay lifecycle-safe</li>
+        </ul>
+        <p>Modern code favors <code>StateFlow</code>/<code>SharedFlow</code>; <code>LiveData</code> remains common in older codebases.</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>Kotlin null safety?</h3>
+        <p>Types are non-null by default; <code>String?</code> opts in to null. The toolkit:</p>
+        <ul class="tick">
+          <li><code>?.</code> safe call · <code>?:</code> Elvis default · <code>?.let{}</code> run-if-non-null</li>
+          <li><code>!!</code> assert-non-null (throws NPE) — a code smell to justify</li>
+        </ul>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>What is <code>companion object</code>?</h3>
+        <p>A single object tied to a class — Kotlin's stand-in for <code>static</code>. Holds factory methods and constants, can implement interfaces, and is initialized lazily on first class access.</p>
+        <p>Members need <code>@JvmStatic</code>/<code>@JvmField</code> to look static from Java.</p>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>Structured concurrency &amp; scopes?</h3>
+        <p>Coroutines launch into a <code>CoroutineScope</code>; the scope <b>owns</b> them, so cancelling it cancels all children and it waits for them to finish.</p>
+        <ul class="tick">
+          <li><code>viewModelScope</code> — cancelled in <code>onCleared()</code></li>
+          <li><code>lifecycleScope</code> — tied to a UI lifecycle owner</li>
+          <li>Dispatchers: <code>Main</code> (UI), <code>IO</code> (network/disk), <code>Default</code> (CPU)</li>
+        </ul>
+      </div>
+
+      <div class="qa">
+        <h3><span class="qn">Q</span>Common causes of memory leaks?</h3>
+        <ul class="tick con">
+          <li>A <code>ViewModel</code>/singleton/static holding a <code>View</code> or Activity <code>Context</code></li>
+          <li>Non-static inner classes, <code>Handler</code>s, or listeners outliving their Activity</li>
+          <li>Coroutines/RxJava subscriptions not cancelled with the lifecycle</li>
+        </ul>
+        <p><span class="lbl">Detect:</span> LeakCanary + the Memory Profiler. <span class="lbl">Prevent:</span> use lifecycle-scoped work and app <code>Context</code> where possible.</p>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Android &amp; Kotlin Cheat Sheet · built for product-company interview prep</span>
+    <span class="mono">Kotlin · Coroutines · Lifecycle · FCM</span>
+  </div>
+</footer>
+
+<script>
+  // ---- Lightweight Kotlin highlighter (operates on already-escaped textContent) ----
+  const KW = new Set(["fun","val","var","if","else","for","while","return","class","object",
+    "interface","import","in","is","as","when","this","super","null","true","false","by",
+    "private","public","protected","internal","open","override","abstract","sealed","data",
+    "enum","companion","suspend","inline","reified","const","lateinit","init","constructor",
+    "operator","vararg","out","where","do","try","catch","finally","throw","break","continue",
+    "expect","actual","typealias"]);
+  const TYPES = new Set(["Int","String","Boolean","Long","Double","Float","Unit","Any","Nothing",
+    "List","MutableList","Map","MutableMap","Set","Array","Char","Pair","Deferred","Job","Flow",
+    "StateFlow","SharedFlow","LiveData","ViewModel","AndroidViewModel","Context","Bundle","Intent",
+    "Activity","Fragment","Notification","NotificationCompat","NotificationManagerCompat","RemoteMessage",
+    "FirebaseMessaging","FirebaseMessagingService","CoroutineScope","Dispatchers","Gson","User","T",
+    "Mutex","ListAdapter","DiffUtil","SavedStateHandle","ViewModelStore","Counter"]);
+
+  const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+  function highlight(src) {
+    const re = /(\/\/[^\n]*)|("(?:\\.|[^"\\])*")|(\b\d[\w.]*)|(@?[A-Za-z_][A-Za-z0-9_]*)|(\s+)|([^\sA-Za-z0-9_])/g;
+    let out = "", m;
+    while ((m = re.exec(src)) !== null) {
+      if (m[1])      out += '<span class="tok-c">' + esc(m[1]) + '</span>';
+      else if (m[2]) out += '<span class="tok-s">' + esc(m[2]) + '</span>';
+      else if (m[3]) out += '<span class="tok-n">' + esc(m[3]) + '</span>';
+      else if (m[4]) {
+        const w = m[4];
+        if (w[0] === "@")        out += '<span class="tok-a">' + esc(w) + '</span>';
+        else if (KW.has(w))      out += '<span class="tok-k">' + w + '</span>';
+        else if (TYPES.has(w))   out += '<span class="tok-t">' + esc(w) + '</span>';
+        else                     out += esc(w);
+      }
+      else if (m[5]) out += m[5];
+      else           out += esc(m[6]);
+    }
+    return out;
+  }
+
+  document.querySelectorAll("pre > code").forEach(el => {
+    el.innerHTML = highlight(el.textContent);
+  });
+</script>
+
+</body>
+</html>
